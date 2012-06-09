@@ -1,0 +1,16 @@
+test.coffee
+production.yaml
+production.yml
+feeds.xml
+credentials.json
+node_modules
+.project
+.env
+.DS_Store
+support
+tmp
+.DS_Store
+*.log
+*~
+*.swp
+.*
