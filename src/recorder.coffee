@@ -25,50 +25,67 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 {log,error,inspect} = require 'util'
+BinaryTree = require 'btree'
+_ = require 'underscore'
 moment = require 'moment'
 
 contains = (item, text) -> (text.indexOf(item) isnt -1)
-class Database
-  constructor: (@recorder=no) ->
-  
-  insert: (time, event) ->
 
-class InMemory extends Database
-  constructor: (@args) ->
-    super()
+class InMemory
+  constructor: () ->
+    @events = []
 
-  insert: (time, event) ->
-    rawString = JSON.stringify time: time, event: event
+  push: (event) ->
+    # for the moment, we can only manage insertion at the end
+    # TODO later: use https://github.com/vadimg/js_bintrees
+    first = _.first @events
+    first.previous = event
+    event.last = first
 
-class SimpleFile extends Database
-  constructor: (@args) ->
-    super()
+    last = _.last @events
+    last.next = event
+    event.previous = last
 
-  insert: (time, event) ->
-    rawString = JSON.stringify time: time, event: event
+    @events.push event
 
 
 class PlaybackModule
 
-  constructor: (@main) ->
+  constructor: (main) ->
+    @cursor = 0
+    @running = false
+    @rate = 1.0
+
+    fire = (event) =>
+      BROKEN
+      next = main.database.nextr event.timestamp
+      delta = event.timestamp - next.timestamp
+      setTimeout delta, -> 
+        @fire nextEvent
 
     # give playback capabilities to the main class
-    @main.play = (rate=1.0) => 
-      @main.database.insert moment(), event
-
-    @main.recordAt = (time, event) => 
-      @main.database.insert moment(time), event
+    main.play = (rate=1.0) => 
+      @rate = rate
+      first = main.database.first
+      if first
+        log "firing first event"
+        fire first
+      else
+        log "no event to fire"
 
 class RecordModule
 
-  constructor: (@main) ->
+  constructor: (main) ->
 
     # give record capabilities to the main class
-    @main.record = (event) => 
-      @main.database.insert moment(), event
+    main.record = (data) -> 
+      main.database.push         
+        timestamp: moment()
+        data: data
 
-    @main.recordAt = (time, event) => 
-      @main.database.insert moment(time), event
+    main.recordAt = (timestamp, data) -> 
+      throw "Not Implemented"
+      return
 
 class module.exports
   constructor: (url="") ->

@@ -19,3 +19,11 @@ very useful to train machine learning algorithms on historic data (eg. Twitter s
 ## License
 
   BSD
+
+## How it works
+
+  Add some documentation here
+
+  alert (from node.js docs):
+
+  It is important to note that your callback will probably not be called with the exact temporal sequence - Node.js makes no guarantees about the exact timing of when the callback will fire, nor of the ordering things will fire in. The callback will be called as close as possible to the time specified.
