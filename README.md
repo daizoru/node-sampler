@@ -1,4 +1,4 @@
-node-recorder
+# node-recorder
 
 
 ## What is it
@@ -7,14 +7,15 @@ node-recorder
 
 ## What?
 
- Record byte streams / events (eg. twitter, music, IRC, Apache logs..) and play them back (eg. to test or debug a stream/event based app, reproduce HTTP errors, simulate message queue stuff)
+ Record byte streams/events (eg. twitter, music, IRC, Apache logs..) and play them back (eg. to test or debug an app, reproduce errors, simulate events)
 
-On the of basic features is that you can control the rate speed, which is very useful to train machine learning algorithms on difficult to get / sparse / slow data (eg. social networks)
+One the of main features is that you can control the rate speed, 
+very useful to train machine learning algorithms on historic data (eg. Twitter streams)
 
 ## Current status
 
-  This library is still in development.
-  It is first designed for a private project so expect refactoring, and few updates until I have more to to settle everything.
+  This library is still in development so expect heavy refactoring and sparse documentation until I have more time to settle everything.
 
+## License
 
-
+  BSD
