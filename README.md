@@ -1,4 +1,4 @@
-# node-recorder
+# node-sampler
 
  A library which record things and play them back
 
@@ -15,6 +15,7 @@
 
 ### TODO / Wishlist
 
+  * real support of stream/buffer API
   * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
   * reverse playback!
 
@@ -28,11 +29,11 @@
 
 #### Install it as a dependency for your project
 
-    $ npm install recorder
+    $ npm install sampler
 
 #### Install it globally in your system
 
-    $ npm install recorder -g
+    $ npm install sampler -g
 
 #### Run the tests
 
@@ -40,10 +41,10 @@
 
 ### For developers
 
-  To install node-recorder in a development setup:
+  To install node-sampler in a development setup:
 
-    $ git clone http://github.com/daizoru/node-recorder.git
-    $ cd node-recorder
+    $ git clone http://github.com/daizoru/node-sampler.git
+    $ cd node-sampler
     $ npm link
     $ # optional:
     $ # npm run-script test 
@@ -59,28 +60,28 @@
 
 ``` coffeescript
 # myapp.coffee
-Recorder = require 'recorder'
+Sampler = require 'sampler'
 
-record = new Recorder()
-record.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
+sample = new Sampler()
+sample.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
 
 # coffee-style timeouts
 delay = (t,f) -> setTimeout f, t
 
-# record some dummy events
-log "recording events.."
-delay 100, -> record.rec companyhelpdesk: "hi how can I help you"
-delay 500, -> record.rec facebook: "wow! this was a big earthquake"
-delay 1000, -> record.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
-delay 1500, -> record.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+# sample some dummy events
+log "sampling events.."
+delay 100, -> sample.rec companyhelpdesk: "hi how can I help you"
+delay 500, -> sample.rec facebook: "wow! this was a big earthquake"
+delay 1000, -> sample.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+delay 1500, -> sample.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
 
 delay 2000, -> 
   log "playing events back.."
-  record.play()
+  sample.play()
 
 delay 5000, -> 
   log "playing events back. and faster."
-  record.play 5.0 # 2.0x
+  sample.play 5.0 # 2.0x
 
 ```
 
@@ -88,7 +89,7 @@ delay 5000, ->
 
 ```
 
-10 Jun 14:57:49 - recording events..
+10 Jun 14:57:49 - sampling events..
 10 Jun 14:57:51 - playing events back..
 10 Jun 14:57:51 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
 10 Jun 14:57:51 - 1339333069783: { facebook: 'wow! this was a big earthquake' }

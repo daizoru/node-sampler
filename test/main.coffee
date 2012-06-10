@@ -1,4 +1,4 @@
-Recorder = require '../lib/recorder'
+Sampler = require '../lib/sampler'
 {log,error,inspect} = require 'util'
 delay = (t,f) -> setTimeout f, t
 
@@ -6,27 +6,52 @@ delay = (t,f) -> setTimeout f, t
 # more complete tests should check for returned values!!!
 
 # our tests
-describe 'Recorder', ->
-  describe '#new Recorder()', ->
-    it 'should work', (done) ->
-    
-      record = new Recorder()
-      record.on 'event', (event) -> log "#{event.timestamp}: #{inspect event.data}"
+describe 'Sampler', ->
+  describe '#Sampler()', ->
+    it 'should record', (done) ->
+      sample = new Sampler()
+      sample.on 'event', (event) -> log "#{event.timestamp}: #{inspect event.data}"
 
-      # record some dummy events
-      log "recording events.."
-      delay 100, -> record.rec companyhelpdesk: "hi how can I help you"
-      delay 500, -> record.rec facebook: "wow! this was a big earthquake"
-      delay 1000, -> record.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
-      delay 1500, -> record.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+      # sample some dummy events
+      log "sampling events.."
+      delay 100, -> sample.rec companyhelpdesk: "hi how can I help you"
+      delay 500, -> sample.rec facebook: "wow! this was a big earthquake"
+      delay 1000, -> sample.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+      delay 1500, -> sample.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+      delay 1600, -> done()
+
+    it 'should playback at normal speed', (done) ->
+      sample = new Sampler()
+      sample.on 'event', (event) -> log "#{event.timestamp}: #{inspect event.data}"
+
+      # sample some dummy events
+      log "sampling events.."
+      delay 100, -> sample.rec companyhelpdesk: "hi how can I help you"
+      delay 500, -> sample.rec facebook: "wow! this was a big earthquake"
+      delay 1000, -> sample.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+      delay 1500, -> sample.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
 
       delay 1600, -> 
         log "playing events back.."
-        record.play()
+        sample.play()
+        done()
 
-        delay 100, -> 
-          log "playing events back. and faster."
-          record.play 5.0 # 2.0x
-          done()
+        #if (err) throw err
 
-          #if (err) throw err
+    it 'should playback faster', (done) ->
+      sample = new Sampler()
+      sample.on 'event', (event) -> log "#{event.timestamp}: #{inspect event.data}"
+
+      # sample some dummy events
+      log "sampling events.."
+      delay 100, -> sample.rec companyhelpdesk: "hi how can I help you"
+      delay 500, -> sample.rec facebook: "wow! this was a big earthquake"
+      delay 1000, -> sample.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+      delay 1500, -> sample.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+
+      delay 1600, -> 
+        log "playing events faster.."
+        sample.play 4.0
+        done()
+
+        #if (err) throw err

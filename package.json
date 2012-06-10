@@ -5,27 +5,24 @@
         "email" : "julian.bilcke@daizoru.com",
         "url" : "http://github.com/daizoru"
    },
-  "name": "recorder",
+  "name": "sampler",
   "description": "Record things, play them back",
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/daizoru/node-recorder.git"
+    "url": "git://github.com/daizoru/node-sampler.git"
   },
     "directories" : {
       "lib" : "./lib",
       "examples" : "./examples",
       "test" : "./test"
     },
-  "main" : "./lib/recorder",
+  "main" : "./lib/sampler",
   "scripts" : {
     "build" : "coffee --compile --output lib/ src/",
-    "watch" : "coffee --watch --compile --output lib/ src/",    
-    "pretest" : "coffee --compile --output lib/ src/",    
+    "watch" : "coffee --watch --compile --output lib/ src/", 
     "test" : "mocha",
-    "html" : "mocha --reporter doc",
-    "prestart" : "coffee --compile --output lib/ src/",
-    "start" : "./bin/hydrant"
+    "html" : "mocha --reporter doc"
   },
   "engines": {
     "node": "0.6.x || 0.7.x"
