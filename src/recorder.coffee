@@ -25,26 +25,35 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 {log,error,inspect} = require 'util'
+events = require 'events'
 BinaryTree = require './btree'
 _ = require 'underscore'
 moment = require 'moment'
+
+delay = (t,f) -> setTimeout f, t
 
 contains = (item, text) -> (text.indexOf(item) isnt -1)
 
 class InMemory
   constructor: () ->
     @events = []
+    @first = no
+    @last = no
 
-  push: (event) ->
+  push: (event) =>
     # for the moment, we can only manage insertion at the end
     # TODO later: use https://github.com/vadimg/js_bintrees
     first = _.first @events
+    first = event unless first
     first.previous = event
-    event.last = first
+    event.next = first
+    @first = first
 
     last = _.last @events
+    last = event unless last
     last.next = event
     event.previous = last
+    @last = last
 
     @events.push event
 
@@ -55,39 +64,59 @@ class PlaybackModule
     @cursor = 0
     @running = false
     @rate = 1.0
+    @looped = no
 
+  
     fire = (event) =>
-      #BROKEN
-      #next = main.database.nextr event.timestamp
-      #delta = event.timestamp - next.timestamp
-      #setTimeout delta, -> 
+      #log "fire! #{inspect event}"
+      main.emit 'event', timestamp: event.timestamp, data: event.data 
+      #log "checking next event.."
+      next = event.next
+      if next is main.database.first
+        #log "reched the end. checking if we should loop.."
+        return unless @looped
+        #log "looping.."
+      delta = (next.timestamp - event.timestamp) / @rate
+      now = moment()
+      next.expected = now + delta
+      #log "event.timestamp: #{event.timestamp} next.timestamp: #{next.timestamp} now: #{now} delta: #{delta} next.expected: #{next.expected}"
+ 
+      delay delta, -> 
+        #log "setTimeout triggered. calling fire next"
+        fire next
       #  @fire nextEvent
 
     # give playback capabilities to the main class
-    main.play = (rate=1.0) => 
-      @rate = rate
+    main.play = (rate=no) => 
+      @rate = rate if rate
+      #log "PlaybackModule: playing at rate #{@rate}"
       first = main.database.first
       if first
-        log "firing first event"
+        #log "firing first event"
         fire first
       else
-        log "no event to fire"
+        #log "no event to fire"
+        1
 
 class RecordModule
 
   constructor: (main) ->
 
     # give record capabilities to the main class
-    main.record = (data) -> 
+    main.rec = (data) -> 
+      #log "RecordModule: pushing into database the event"
+      timestamp = moment()
       main.database.push         
-        timestamp: moment()
+        timestamp: timestamp
         data: data
+      #log "RecordModule: db is #{inspect main.database.events}"
+      timestamp
 
-    main.recordAt = (timestamp, data) -> 
+    main.overwrite = (timestamp, data) -> 
       throw "Not Implemented"
       return
 
-class module.exports
+class module.exports extends events.EventEmitter
   constructor: (url="") ->
     @database = new InMemory()
 
@@ -95,9 +124,10 @@ class module.exports
     if contains "file://", url
       @database = new SimpleFile url
     else
-      log "using default database (in-memory)"
+      #log "using default database (in-memory)"
+      1
 
     # now initialize the sub-controllers
     new RecordModule @
     new PlaybackModule @
-    
+

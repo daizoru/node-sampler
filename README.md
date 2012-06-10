@@ -13,6 +13,11 @@
 
   This library is still in development so expect heavy refactoring and sparse documentation until I have more time to settle everything.
 
+### TODO / Wishlist
+
+  * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
+  * reverse playback!
+  
 ### License
 
   BSD
@@ -45,10 +50,52 @@
 
 ## Documentation
 
-### How it works
+### Example
 
-  Add some documentation here
+``` coffeescript
+# myapp.coffee
+Recorder = require 'recorder'
 
-  alert (from node.js docs):
+record = new Recorder()
+record.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
 
-  It is important to note that your callback will probably not be called with the exact temporal sequence - Node.js makes no guarantees about the exact timing of when the callback will fire, nor of the ordering things will fire in. The callback will be called as close as possible to the time specified.
+# coffee-style timeouts
+delay = (t,f) -> setTimeout f, t
+
+# record some dummy events
+log "recording events.."
+delay 100, -> record.rec companyhelpdesk: "hi how can I help you"
+delay 500, -> record.rec facebook: "wow! this was a big earthquake"
+delay 1000, -> record.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+delay 1500, -> record.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+
+delay 2000, -> 
+  log "playing events back.."
+  record.play()
+
+delay 5000, -> 
+  log "playing events back. and faster."
+  record.play 5.0 # 2.0x
+
+```
+
+  which should output something like:
+
+```
+
+10 Jun 14:57:49 - recording events..
+10 Jun 14:57:51 - playing events back..
+10 Jun 14:57:51 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
+10 Jun 14:57:51 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
+10 Jun 14:57:52 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
+10 Jun 14:57:52 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
+10 Jun 14:57:54 - playing events back. and faster.
+10 Jun 14:57:54 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
+10 Jun 14:57:54 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
+10 Jun 14:57:54 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
+10 Jun 14:57:54 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
+
+```
+
+  You can see it here but the second batch is two times faster
+
