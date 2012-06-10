@@ -17,7 +17,7 @@
 
   * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
   * reverse playback!
-  
+
 ### License
 
   BSD
@@ -28,11 +28,11 @@
 
 #### Install it as a dependency for your project
 
-    $ npm install http://github.com/daizoru/node-recorder.git
+    $ npm install recorder
 
 #### Install it globally in your system
 
-    $ npm install http://github.com/daizoru/node-recorder.git -g
+    $ npm install recorder -g
 
 #### Run the tests
 
@@ -47,6 +47,11 @@
     $ npm link
     $ # optional:
     $ # npm run-script test 
+
+  To build the coffee-script:
+
+    $ npm run-script build
+
 
 ## Documentation
 
