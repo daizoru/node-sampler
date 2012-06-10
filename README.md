@@ -15,9 +15,12 @@
 
 ### TODO / Wishlist
 
-  * real support of stream/buffer API
+  * real support of stream/buffer API. for the moment it's only a basic system based on event emitter
+  * save/export samples (to databases, files..)
+  * load/import samples (from APIs, databases, CSVs..)
   * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
   * reverse playback!
+  * more tests
 
 ### License
 
@@ -103,5 +106,5 @@ delay 5000, ->
 
 ```
 
-  You can see it here but the second batch is two times faster
+  You cannot see it here but the second batch is two times faster
 
