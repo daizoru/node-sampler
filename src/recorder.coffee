@@ -25,7 +25,7 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 {log,error,inspect} = require 'util'
-BinaryTree = require 'btree'
+BinaryTree = require './btree'
 _ = require 'underscore'
 moment = require 'moment'
 
@@ -57,11 +57,11 @@ class PlaybackModule
     @rate = 1.0
 
     fire = (event) =>
-      BROKEN
-      next = main.database.nextr event.timestamp
-      delta = event.timestamp - next.timestamp
-      setTimeout delta, -> 
-        @fire nextEvent
+      #BROKEN
+      #next = main.database.nextr event.timestamp
+      #delta = event.timestamp - next.timestamp
+      #setTimeout delta, -> 
+      #  @fire nextEvent
 
     # give playback capabilities to the main class
     main.play = (rate=1.0) => 

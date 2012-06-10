@@ -22,7 +22,8 @@
     "build" : "coffee --compile --output lib/ src/",
     "watch" : "coffee --watch --compile --output lib/ src/",    
     "pretest" : "coffee --compile --output lib/ src/",    
-    "test" : "vows --spec",
+    "test" : "mocha",
+    "html" : "mocha --reporter doc",
     "prestart" : "coffee --compile --output lib/ src/",
     "start" : "./bin/hydrant"
   },
@@ -35,7 +36,8 @@
      "underscore"        : "1.3.1"
   },
   "devDependencies": {
-    "mocha": "> 0.12.x",
-    "coffee-script" : "1.2.x"
+    "mocha": "1.1.x",
+    "should" : "0.6.x",
+    "coffee-script" : "1.3.x"
   }
 }
