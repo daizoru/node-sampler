@@ -115,4 +115,21 @@ delay 5000, ->
   To be continued
 
 
+## Changelog
+
+### 0.0.1
+
+ I Added a callback when the playback reach the end:
+ 
+``` javascript
+
+  sampler.on("end", function() {
+    console.log("playback terminated")
+  })
+  
+```
+
+### 0.0.0
+
+  First version
 

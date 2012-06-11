@@ -7,7 +7,7 @@
    },
   "name": "sampler",
   "description": "Record things, play them back",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/daizoru/node-sampler.git"
