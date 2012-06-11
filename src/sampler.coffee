@@ -71,8 +71,10 @@ class PlaybackModule
   constructor: (main) ->
     @rate = 1.0
     @looped = no
-
     late = 0
+
+    main.output = (cb) ->
+      main.on 'event', cb
 
     fire = (event, onComplete=no) =>
       fired = moment()
@@ -126,6 +128,8 @@ class RecordModule
 
   constructor: (main) ->
 
+    @inputs = []
+
     # give record capabilities to the main class
     main.rec = (data) -> 
       #log "RecordModule: pushing into database the event"
@@ -135,6 +139,17 @@ class RecordModule
         data: data
       #log "RecordModule: db is #{inspect main.database.events}"
       timestamp
+
+    main.listen = (stream, params) =>
+      unless stream
+        throw "error, no source specified"
+        return
+      msg = if params.msg? then params.msg else 'data'
+
+      filter = if params.filter? then params.filter else (d) -> d
+      input = stream.on msg, (data) -> main.rec filter(data)
+      @inputs.push input
+      log "listening to #{msg}"
 
     main.overwrite = (timestamp, data) -> 
       throw "Not Implemented"

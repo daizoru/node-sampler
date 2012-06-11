@@ -64,7 +64,24 @@
 
 ## Documentation
 
-### Example
+### Functions
+
+#### sampler = new Sampler()
+
+#### sampler.listen stream (, {msg, autoplay, filter})
+
+  Example:
+
+``` coffeescript
+
+  sampler.listen stream,
+    msg: 'data'
+    autostart: yes
+    filter: (err, msg) -> msg * 2.0
+
+```
+
+### Basic example
 
 ``` coffeescript
 
@@ -121,6 +138,25 @@ delay 5000, ->
 ```
 
   To be continued
+
+### Recording external inputs
+
+  Eg. to record the twitter stream
+```coffeescript
+
+  Twitter = require 'ntwitter'
+  twit = new Twitter
+    consumer_key: 'Twitter'
+    consumer_secret: 'API'
+    access_token_key: 'keys'
+    access_token_secret: 'go here'
+
+  sampler = new Sampler()
+
+  twit.stream 'statuses/sample', (stream) ->
+    sampler.listen stream, 
+      msg: 'data'
+```
 
 
 ## Changelog
