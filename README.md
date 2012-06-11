@@ -13,6 +13,11 @@
 
   This library is still in development so expect heavy refactoring and sparse documentation until I have more time to settle everything.
 
+### Features
+
+  * control the playback speed (slower or faster)
+  * accurate scheduler (latency if automatically correct)
+
 ### TODO / Wishlist
 
   * real support of stream/buffer API. for the moment it's only a basic system based on event emitter
@@ -70,7 +75,7 @@ sp = new Sampler()
 
 # listen to events
 sp.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
-sp.on 'end', -> log "finished"
+sp.on 'end', -> log "end"
 
 # coffee-style timeouts
 delay = (t,f) -> setTimeout f, t
@@ -88,7 +93,9 @@ delay 2000, ->
 
 delay 5000, -> 
   log "playing events back. and faster."
-  sp.play 2.0 # twice faster!
+   # twice faster!
+  sp.play 2.0, ->
+    log "finished"
 
 ```
 
@@ -102,12 +109,13 @@ delay 5000, ->
 10 Jun 14:57:51 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
 10 Jun 14:57:52 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
 10 Jun 14:57:52 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
-10 Jun 14:57:52 - finished
+10 Jun 14:57:52 - end
 10 Jun 14:57:54 - playing events back. and faster.
 10 Jun 14:57:54 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
 10 Jun 14:57:54 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
 10 Jun 14:57:54 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
 10 Jun 14:57:54 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
+10 Jun 14:57:54 - end
 10 Jun 14:57:54 - finished
 
 ```
@@ -116,6 +124,12 @@ delay 5000, ->
 
 
 ## Changelog
+
+### 0.0.2
+
+ * sampler.play() now support an optional callback
+ * network latency compensation
+ * accelerate rythm of events when we are late (eg. slow database connection)
 
 ### 0.0.1
 

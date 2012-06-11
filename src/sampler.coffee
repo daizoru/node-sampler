@@ -57,44 +57,67 @@ class InMemory
 
     @events.push event
 
+  # functions to get the previous / next event
+  previous: (event, onComplete) ->
+    delay 0, -> onComplete event.previous
 
+  next: (event, onComplete) -> 
+    delay 0, -> onComplete event.next
+
+
+  
 class PlaybackModule
 
   constructor: (main) ->
-    @cursor = 0
-    @running = false
     @rate = 1.0
     @looped = no
 
-  
-    fire = (event) =>
-      #log "fire! #{inspect event}"
+    late = 0
+
+    fire = (event, onComplete=no) =>
+      fired = moment()
       main.emit 'event', timestamp: event.timestamp, data: event.data 
-      #log "checking next event.."
-      next = event.next
-      if next is main.database.first
-        #log "reched the end. checking if we should loop.."
-        main.emit 'end', looping: @looped
-        return unless @looped
-        #log "looping.."
-      delta = (next.timestamp - event.timestamp) / @rate
-      now = moment()
-      next.expected = now + delta
-      #log "event.timestamp: #{event.timestamp} next.timestamp: #{next.timestamp} now: #{now} delta: #{delta} next.expected: #{next.expected}"
- 
-      delay delta, -> 
-        #log "setTimeout triggered. calling fire next"
-        fire next
-      #  @fire nextEvent
+      main.database.next event, (next) =>
+
+        # did we hit the loop cue point?
+        if next is main.database.first
+          main.emit 'end', looping: @looped
+          if onComplete
+            onComplete looping: @looped
+          return unless @looped
+
+        # theorical delay until next event (with threshold applied)
+        theoricDelay = (next.timestamp - event.timestamp) / @rate
+
+        # let's compute how much time we lost with database/network queries
+        dbLatency = moment() - fired - Math.abs(late)
+
+        # we will compensate system latency by shorting time to next event
+        realDelay = theoricDelay - dbLatency
+        if realDelay < 0
+          late = realDelay
+          realDelay = 0 
+        delay realDelay, -> fire next, onComplete
 
     # give playback capabilities to the main class
-    main.play = (rate=no) => 
-      @rate = rate if rate
+    main.play = (rate=no,cb=no) => 
+      onComplete = no
+
+      if rate
+        if cb
+          @rate = rate
+          onComplete = cb
+        else
+          if _.isNumber rate
+            @rate = rate
+          else
+            onComplete = rate
+       
       #log "PlaybackModule: playing at rate #{@rate}"
       first = main.database.first
       if first
         #log "firing first event"
-        fire first
+        fire first, onComplete
       else
         #log "no event to fire"
         1
