@@ -74,6 +74,7 @@ class PlaybackModule
       next = event.next
       if next is main.database.first
         #log "reched the end. checking if we should loop.."
+        main.emit 'end', looping: @looped
         return unless @looped
         #log "looping.."
       delta = (next.timestamp - event.timestamp) / @rate
