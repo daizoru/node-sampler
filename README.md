@@ -62,29 +62,33 @@
 ### Example
 
 ``` coffeescript
-# myapp.coffee
+
 Sampler = require 'sampler'
 
-sample = new Sampler()
-sample.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
+# for the moment, this create a default, in-memory sampler
+sp = new Sampler()
+
+# listen to events
+sp.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
+sp.on 'end', -> log "finished"
 
 # coffee-style timeouts
 delay = (t,f) -> setTimeout f, t
 
 # sample some dummy events
 log "sampling events.."
-delay 100, -> sample.rec companyhelpdesk: "hi how can I help you"
-delay 500, -> sample.rec facebook: "wow! this was a big earthquake"
-delay 1000, -> sample.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
-delay 1500, -> sample.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
+delay 100, -> sp.rec companyhelpdesk: "hi how can I help you"
+delay 500, -> sp.rec facebook: "wow! this was a big earthquake"
+delay 1000, -> sp.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
+delay 1500, -> sp.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
 
 delay 2000, -> 
   log "playing events back.."
-  sample.play()
+  sp.play()
 
 delay 5000, -> 
   log "playing events back. and faster."
-  sample.play 5.0 # 2.0x
+  sp.play 2.0 # twice faster!
 
 ```
 
@@ -98,13 +102,17 @@ delay 5000, ->
 10 Jun 14:57:51 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
 10 Jun 14:57:52 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
 10 Jun 14:57:52 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
+10 Jun 14:57:52 - finished
 10 Jun 14:57:54 - playing events back. and faster.
 10 Jun 14:57:54 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
 10 Jun 14:57:54 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
 10 Jun 14:57:54 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
 10 Jun 14:57:54 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
+10 Jun 14:57:54 - finished
 
 ```
 
-  You cannot see it here but the second batch is two times faster
+  To be continued
+
+
 
