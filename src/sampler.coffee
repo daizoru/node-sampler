@@ -1,5 +1,10 @@
+stream = require './stream'
+simple = require './simple'
+Record = require './record'
 
 module.exports
-  Record: require('./record').Record
-  stream: require './stream'
-  simple: require './simple'
+  Record: Record
+  SimpleRecorder: simple.Recorder
+  SimplePlayer  : simple.Player
+  StreamRecorder: stream.Recorder
+  StreamPlayer  : stream.Player

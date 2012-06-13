@@ -69,18 +69,44 @@
 
 ### Simple API
 
+Recording
+
 ``` coffeescript
 
-{Record,simple} = require 'sampler'
+{Record, SimpleRecorder} = require 'sampler'
 
 # create record. a record is where your events are stored
 record = new Record() # by default no arguments -> in memory store
 
 # now, you can start playing with your record. 
 # let's record things in the record! for this, you need a Recorder
-recorder = new simple.Recorder(record)
+recorder = new .SimpleRecorder(record)
 
-recorder.rec "hello"
+# then just write things inside
+recorder.write "hello"
+recorder.write foo: "hello", bar: "world"
+recorder.write new Buffer()
+
+# in the future, you will be able to add an event at a specific time
+# recorder.writeAt moment(1982,1,1), "cold wave"
+
+```
+
+Playback
+
+``` coffeescript
+
+{Record, SimplePlayer} = require 'sampler'
+
+# load an existing record - for the moment.. nothing is supported :) only in-memory
+# but in the future, you will be able to load MongoDB, SQL, Redis records etc..
+record = new Record("redis://foobar")
+
+# now, you can start playing with your record. 
+# let's record things in the record! for this, you need a Player
+player = new SimplePlayer(record)
+
+# by default the player start itself automatically
 
 ```
 
@@ -107,15 +133,15 @@ recorder.rec "hello"
   twit.stream 'statuses/sample', (stream) ->
 
     # that's all you have to do!
-    recorder = new sampler.stream.Recorder(stream)
+    recorder = new sampler.StreamRecorder(stream)
 
     terminate = ->
-      stream.destroy()
+      stream.pause()
 
       # let's play some music!
       # by default a sampler will simply playback the event
       # (it's in autorun + speed 1x by default)
-      player = new sampler.simple.Player(recorder.record)
+      player = new sampler.SimplePlayer(recorder.record)
 
     setTimeout terminate, 10000
 

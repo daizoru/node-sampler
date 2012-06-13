@@ -7,7 +7,7 @@
 {delay} = require '../lib/misc/toolbox'
 
 # The API we want to stress
-{Record,simple,stream} = require '../lib/sampler'
+{Record,SimplePlayer,SimpleRecorder,StreamPlayer,StreamRecorder} = require '../lib/sampler'
 
 class Newsfeed extends Stream
   constructor: ->
@@ -52,31 +52,31 @@ describe 'Simple API', ->
   describe '#rec()', ->
     it 'should record 8 events (1 every 50~100ms)', (done) ->
       @timeout 3000 # TODO use something better here
-      recorder = new simple.Recorder record
-      feed.map (event) -> if event then recorder.rec(event) else done()
+      recorder = new SimpleRecorder record
+      feed.map (event) -> if event then recorder.write(event) else done()
 
   describe '#play()', ->
     length = record.length()
     it 'playback at normal speed', (done) ->
       @timeout TIMEOUT + (length / 1.0)
-      new simple.Player record, 
+      new SimplePlayer record, 
         onEnd: -> done()
 
     it 'playback at 2.0x speed', (done) ->
       @timeout TIMEOUT + (length / 2.0)
-       new simple.Player record,
+       new SimplePlayer record,
         rate: 2.0
         onEnd: -> done()
 
     it 'playback at 10.0x speed', (done) ->
       @timeout TIMEOUT + (length / 10.0)
-      new simple.Player record,
+      new SimplePlayer record,
         rate: 10.0
         onEnd: -> done()
 
     it 'playback at 0.345x speed', (done) ->
       @timeout TIMEOUT + (length / 0.345)
-       new simple.Player record,
+       new SimplePlayer record,
         rate: 0.345
         onEnd: -> done()
 
@@ -90,24 +90,28 @@ describe 'Stream API', ->
   describe '#stream.Recorder()', ->
     it 'should record 8 events (1 every 50~100ms)', (done) ->
       @timeout 3000
-      recorder = new stream.Recorder record
       feed.on 'end', -> done()
-      feed.pipe()
+      recorder = new StreamRecorder history
+      feed.pipe(recorder)
 
   describe '#play()', ->
     length = record.length()
     it 'playback at normal speed', (done) ->
       @timeout TIMEOUT + (length / 1.0)
-      record.play -> done()
+      player = new StreamPlayer history
+      player.on 'end', -> done()
 
     it 'playback at 2.0x speed', (done) ->
       @timeout TIMEOUT + (length / 2.0)
-      record.play 2.0, -> done()
+      player = new StreamPlayer history, rate: 2.0
+      player.on 'end', -> done()
 
     it 'playback at 10.0x speed', (done) ->
       @timeout TIMEOUT + (length / 10.0)
-      record.play 10.0, -> done()
+      player = new StreamPlayer history, rate: 10.0
+      player.on 'end', -> done()
 
     it 'playback at 0.345x speed', (done) ->
       @timeout TIMEOUT + (length / 0.345)
-      record.play 0.345, -> done()
+      player = new StreamPlayer history, rate: 0.345
+      player.on 'end', -> done()

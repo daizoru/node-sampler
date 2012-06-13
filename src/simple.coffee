@@ -44,9 +44,14 @@ class Recorder
 
 
   # SimpleRecorder API
-  rec: (data,status=->) => 
-    log "simple.Recorder#rec(#{data}): simple rec"
+  write: (data,status=->) => 
+    log "SimpleRecorder#write(#{data})"
     @record.write moment(), data, status
+
+  # SimpleRecorder API
+  writeAt: (timestamp, data,status=->) => 
+    log "SimpleRecorder#writeAt(#{timestamp},#{data})"
+    @record.write timestamp, data, status
   
 class Player
     constructor: (url, options) -> 
