@@ -4,23 +4,29 @@
 
 ## Overview
 
- Record byte streams/events (eg. twitter, music, IRC, Apache logs..) and play them back (eg. to test or debug an app, reproduce errors, simulate events)
+ You can record events from nearly everything,
+ store then in a database (for the moment, memory only, but more backends are coming)
+ and play, at any desired speed.
 
- One the of main features is that you can control the speed speed, 
- very useful to train machine learning algorithms on historic data (eg. Twitter streams)
+ This can be very useful if you deal with machine learning algorithms that need to be trained
+ on long time-series (eg. Twitter streams). You can also use it to simulate stuff like HTTP request etc..
 
 ### Current status
 
   This library is still in development so expect heavy refactoring and sparse documentation until I have more time to settle everything.
+  
+  However it is somehow functional, for basic use or/and fun. check the twitter example :)
 
 ### Features
 
   * control the playback speed (slower or faster)
-  * accuspeed scheduler (latency if automatically correct)
+  * accurate scheduler (latency if automatically corrected)
+  * simple API - with unit tests!
+  * basic Twitter example
 
 ### TODO / Wishlist
   
-  * support the Stream API (for the moment it is only a basic EventEmitter)
+  * full support the Stream API (still incomplete/non functional)
   * save/export samples (to databases, files..)
   * load/import samples (from APIs, databases, CSVs..)
   * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
