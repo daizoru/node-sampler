@@ -19,12 +19,12 @@
   * accurate scheduler (latency if automatically correct)
 
 ### TODO / Wishlist
-
-  * real support of stream/buffer API. for the moment it's only a basic system based on event emitter
+  
+  * support the Stream API (for the moment it is only a basic EventEmitter)
   * save/export samples (to databases, files..)
   * load/import samples (from APIs, databases, CSVs..)
   * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
-  * reverse playback!
+  * reverse playback?
   * more tests
 
 ### License
@@ -156,6 +156,8 @@ delay 5000, ->
   twit.stream 'statuses/sample', (stream) ->
     sampler.listen stream, 
       msg: 'data'
+
+
 ```
 
 
