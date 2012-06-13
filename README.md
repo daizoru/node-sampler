@@ -118,33 +118,43 @@ player = new SimplePlayer(record)
 
 ``` coffeescript
 
-  {log}   = require'util'
-  sampler = require 'sampler'
-  Twitter = require 'ntwitter'
+# standard node library
+{log,inspect}   = require 'util'
 
-  # connect to Twitter using your own credential
-  twit = new Twitter
-    consumer_key: 'Twitter'
-    consumer_secret: 'API'
-    access_token_key: 'keys'
-    access_token_secret: 'go here'
+# third-parties libraries
+Twitter = require 'ntwitter'
+moment = require 'moment'
 
-  # let's open a stream on random tweets
-  twit.stream 'statuses/sample', (stream) ->
+# sampler modules
+sampler = require '../lib/sampler'
+delay = (t, f) -> setTimeout f, t
 
-    # that's all you have to do!
-    recorder = new sampler.StreamRecorder(stream)
+# PARAMETERS
+duration = 5
+timeline = new sampler.Record()
+twit = new Twitter
+  consumer_key: process.env.TWITTER_CONSUMER_KEY
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET
+  access_token_key: process.env.TWITTER_TOKEN_KEY
+  access_token_secret: process.env.TWITTER_TOKEN_SECRET
 
-    terminate = ->
-      stream.pause()
 
-      # let's play some music!
-      # by default a sampler will simply playback the event
-      # (it's in autorun + speed 1x by default)
-      player = new sampler.SimplePlayer(recorder.record)
-
-    setTimeout terminate, 10000
-
+# let's open a stream on random tweets
+twit.stream 'statuses/sample', (stream) ->
+  recorder = new sampler.SimpleRecorder timeline
+  stream.on 'error', (err) ->
+    log "twitter error: #{inspect err}"
+  stream.on 'data', (data) -> 
+    timeline.write moment(data.created_at), data.text
+  delay duration*1000, ->
+    log "playing tweets back"
+    new sampler.SimplePlayer timeline,
+      speed: 2.0
+      onData: (tm, data) ->
+        log "#{tm}: #{inspect data}"
+      onEnd: ->
+        process.exit()
+  log "listening for #{duration} seconds"
 
 ```
 
