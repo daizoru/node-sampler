@@ -4,9 +4,9 @@
 
 ## Overview
 
- You can record events from nearly everything,
- store then in a database (for the moment, memory only, but more backends are coming)
- and play, at any desired speed.
+ You can record events from virtually any source (streams, event emitters, files, lines, code, message queues.. maybe even audio!)
+ store them in a database (for the moment, memory only, but more backends are coming)
+ and play these events slower (or faster).
 
  This can be very useful if you deal with machine learning algorithms that need to be trained
  on long time-series (eg. Twitter streams). You can also use it to simulate stuff like HTTP request etc..
