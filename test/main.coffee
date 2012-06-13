@@ -46,7 +46,7 @@ class Newsfeed extends Stream
     run @events, cb
 
 
-TIMEOUT = 400 # 10 milliseconds
+TIMEOUT = 50 # 10 milliseconds
 
 # our tests
 describe 'Simple API', ->
