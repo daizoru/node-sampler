@@ -2,9 +2,8 @@ stream = require './stream'
 simple = require './simple'
 Record = require './record'
 
-module.exports
-  Record: Record
-  SimpleRecorder: simple.Recorder
-  SimplePlayer  : simple.Player
-  StreamRecorder: stream.Recorder
-  StreamPlayer  : stream.Player
+exports.Record         = Record
+exports.SimpleRecorder = simple.Recorder
+exports.SimplePlayer   = simple.Player
+exports.StreamRecorder = stream.Recorder
+exports.StreamPlayer   = stream.Player

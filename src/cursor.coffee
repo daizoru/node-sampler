@@ -41,7 +41,7 @@ class module.exports
     # TODO do something more clean and safe here
     # eg. check parameters..
     @store = options.record.store
-    @rate = options.rate
+    @speed = options.speed
     @looped = options.looped
 
     @onError = options.on.error
@@ -60,7 +60,7 @@ class module.exports
 
   resume: () => 
     unless @enabled
-      @onEnd()
+      #@onEnd()
       @onError "cannot resume: we are not enabled"
       return
 
@@ -72,8 +72,9 @@ class module.exports
     @fire()
 
   fire: =>
+    #log "fire: next is #{inspect @next}"
     unless @enabled
-      @onEnd()
+      #@onEnd()
       @onError "cannot fire: we are not enabled"
       return
 
@@ -83,32 +84,37 @@ class module.exports
 
     evt = @next
 
-    unless evt
-      @onEnd()
-      @onError "cannot fire: next is empty()"
-      return
+    #unless evt
+    #  @onEnd()
+    #  log "aborting fire, calling onEnd (next is empty)"
+    #  #@onError "cannot fire: next is empty()"
+    #  return
 
     # when did we fire?
     fired = moment()
 
     # emit the event to our Player
-    @onData timestamp: evt.timestamp, data: evt.data 
+    delay 0, => @onData evt.timestamp, evt.data 
 
     @store.next evt, (next) =>
 
+      unless next
+        log "error, no more next in the DB.."
+        @onError "store.next gave us nothing"
+        return
+
       # did we hit the loop cue point?
       if next is @store.first
-        @onEnd()
         unless @looped
           @enabled = no
           @onEnd()
           return
 
       # theorical delay until next event (with threshold applied)
-      theoricDelay = (next.timestamp - evt.timestamp) / @rate
+      theoricDelay = (next.timestamp - evt.timestamp) / @speed
 
       # let's compute how much time we lost with database/network queries
-      dbLatency = moment() - fired - Math.abs(latency)
+      dbLatency = moment() - fired - Math.abs(@latency)
 
       # we will compensate system latency by shorting time to next event
       realDelay = theoricDelay - dbLatency

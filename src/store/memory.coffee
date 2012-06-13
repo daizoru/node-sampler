@@ -64,7 +64,9 @@ class module.exports extends events.EventEmitter
     last.next = event
     event.previous = last
     @last = last
-    @_length = if @first and @last then @last.timestamp - @first.timestamp else 0
+    if @first and @last
+      #log "got first and last: #{@last.timestamp - @first.timestamp}"
+      @_length = @last.timestamp - @first.timestamp
 
     @events.push event
 
@@ -83,7 +85,9 @@ class module.exports extends events.EventEmitter
   # Compute the duration
   length: (cb=no) => 
     if cb 
+      log "got CB"
       delay 0, => cb @_length
       return
     else
+      log "No CB: #{@_length}"
       @_length

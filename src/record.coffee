@@ -35,10 +35,10 @@ moment = require 'moment'
 # project modules
 {delay,contains} = require './misc/toolbox'
 stores = require './stores'
-Playback = require './playback'
 
-class Record
-  constructor: (url) ->
+class module.exports
+
+  constructor: (url="") ->
 
     # default store
     @store = new stores.InMemory()
@@ -48,7 +48,8 @@ class Record
       @store = new stores.SimpleFile(url)
 
 
-  length: (cb=no) => @store.length cb
+  length: (cb=no) => 
+    @store.length cb
 
   # write to the database. Return yes if flushed, no if uncertain.
   # status is called when the entry is really written to the base,
@@ -56,8 +57,6 @@ class Record
   write: (timestamp, data, status=->) => 
     @store.write timestamp, data, status
 
-  newPlayback: (ccntroller) =>
-    new Playback @, controller
 
 
 

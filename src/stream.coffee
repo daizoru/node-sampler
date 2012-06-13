@@ -38,22 +38,30 @@ Record = require './record'
 Cursor = require './cursor'
 
 # STREAMING API
-class Recorder extends Stream
+class exports.Recorder extends Stream
   constructor: (url="") ->
-    log "stream.Recorder#constructor(#{url})"
+    log "StreamRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
 
-    @record.on 'close', =>
-      @emit 'close'
+  end: (data) =>
+    #log "StreamRecorder#end(#{inspect data})"
+    #@record.close()
 
-  write: (data) ->
-    @record.write data
+  # SimpleRecorder API
+  write: (data,status=->) => 
+    log "StreamRecorder#write(#{data})"
+    @record.write moment(), data, status
+
+  # SimpleRecorder API
+  writeAt: (timestamp, data,status=->) => 
+    log "StreamRecorder#writeAt(#{timestamp},#{data})"
+    @record.write timestamp, data, status
   
-class Player extends Stream
+class exports.Player extends Stream
   constructor: (url, options) -> 
-    log "stream.Player#constructor(#{url})"
+    log "StreamPlayer#constructor(#{url})"
     @config =
-      rate: 1.0
+      speed: 1.0
       autoplay: on
       timestamp: no
       looped: no
@@ -65,7 +73,7 @@ class Player extends Stream
 
     @cursor = new Cursor
       record: @record
-      rate: @config.rate
+      speed: @config.speed
       looped: @config.looped
       on:
         data: (timestamp, data) =>
@@ -73,15 +81,20 @@ class Player extends Stream
         end: =>
           @emit 'end'
         error: (err) =>
-          @emit 'end'
-          @emit 'error', err
+          log "error: #{err}"
+          #@emit 'error', err
+
     if @config.autoplay
       @resume()
 
+
   resume: =>
-    log "stream.Player#start()"
+    log "StreamPlayer#resume()"
     @cursor.resume()
 
   pause: =>
-    log "stream.Player#pause()"
+    log "StreamPlayer#pause()"
     @cursor.pause()
+
+
+

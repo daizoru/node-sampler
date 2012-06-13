@@ -34,35 +34,35 @@ moment = require 'moment'
 
 # project modules
 {delay,contains,simpleFactory} = require './misc/toolbox'
-{Record} = require './record'
+Record = require './record'
+Cursor = require './cursor'
 
 # SIMPLE API
-class Recorder
+class exports.Recorder
   constructor: (url=no) ->
-    log "simple.Recorder#constructor(#{url})"
+    #log "SimpleRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
-
 
   # SimpleRecorder API
   write: (data,status=->) => 
-    log "SimpleRecorder#write(#{data})"
+    #log "SimpleRecorder#write(#{data})"
     @record.write moment(), data, status
 
   # SimpleRecorder API
   writeAt: (timestamp, data,status=->) => 
-    log "SimpleRecorder#writeAt(#{timestamp},#{data})"
+    #log "SimpleRecorder#writeAt(#{timestamp},#{data})"
     @record.write timestamp, data, status
   
-class Player
-    constructor: (url, options) -> 
-    log "simple.Player#constructor(#{url}, options)"
+class exports.Player
+  constructor: (url, options) -> 
+    #log "simple.Player#constructor(#{url}, options)"
 
     @config =
-      rate: 1.0
+      speed: 1.0
       autoplay: on
       timestamp: no
       looped: no
-      onData: (event) -> log "#{event.timestamp}: #{event.data}"
+      onData: (tm,data) -> #log "#{tm}: #{data}"
       onEnd: ->
       onError: (err) ->
 
@@ -73,20 +73,28 @@ class Player
 
     @cursor = new Cursor
       record: @record
-      rate: @config.rate
+      speed: @config.speed
       looped: @config.looped
       on:
         data: (timestamp, data) =>
+          #log "CURSOR SENT US #{timestamp} ~ #{inspect data}"
           @config.onData timestamp, data
         end: =>
+          #log "CURSOR SENT 'end'"
           @config.onEnd()
         error: (err) =>
-          @config.onEnd()
+          #log "CURSOR SENT 'error': #{err}"
           @config.onError err
 
     if @config.autoplay
       @start()
 
   start: ->
-    log "simple.Player#start()"
+    @resume()
+
+  start: ->
+    #log "simple.Player#start()"
     @cursor.resume()
+
+  pause: ->
+    @cursor.pause()

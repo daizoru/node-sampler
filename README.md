@@ -6,7 +6,7 @@
 
  Record byte streams/events (eg. twitter, music, IRC, Apache logs..) and play them back (eg. to test or debug an app, reproduce errors, simulate events)
 
- One the of main features is that you can control the rate speed, 
+ One the of main features is that you can control the speed speed, 
  very useful to train machine learning algorithms on historic data (eg. Twitter streams)
 
 ### Current status
@@ -16,7 +16,7 @@
 ### Features
 
   * control the playback speed (slower or faster)
-  * accurate scheduler (latency if automatically correct)
+  * accuspeed scheduler (latency if automatically correct)
 
 ### TODO / Wishlist
   
@@ -80,7 +80,7 @@ record = new Record() # by default no arguments -> in memory store
 
 # now, you can start playing with your record. 
 # let's record things in the record! for this, you need a Recorder
-recorder = new .SimpleRecorder(record)
+recorder = new SimpleRecorder(record)
 
 # then just write things inside
 recorder.write "hello"
@@ -153,9 +153,7 @@ player = new SimplePlayer(record)
 
 ### 0.0.2
 
- * sampler.play() now support an optional callback
- * network latency compensation
- * accelerate rythm of events when we are late (eg. slow database connection)
+ * REFACTORED EVERYTHING WITH FIRE
 
 ### 0.0.1
 

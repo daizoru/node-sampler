@@ -9,6 +9,6 @@ simpleFactory = exports.simpleFactory = (Obj, params) ->
     if _.isString params
       return new Obj params
     else
-      return url
+      return params
   else
     return new Obj()
