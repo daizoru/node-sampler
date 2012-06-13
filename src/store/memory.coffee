@@ -27,6 +27,7 @@
 # standard modules
 {log,error,inspect} = require 'util'
 {Stream} = require 'stream'
+events = require 'events'
 
 # third party modules
 _ = require 'underscore'
@@ -36,13 +37,20 @@ moment = require 'moment'
 {delay,contains} = require '../misc/toolbox'
 BinaryTree = require '../misc/btree'
 
-class MemoryStore
+# TODO emit errors when there are.. errors
+class module.exports extends events.EventEmitter
   constructor: () ->
     @events = []
     @first = no
     @last = no
+    @_length = 0
 
-  insert: (event) =>
+  write: (timestamp, data, status) =>
+
+    event =
+      timestamp: timestamp
+      data: data
+      
     # for the moment, we can only manage insertion at the end
     # TODO later: use https://github.com/vadimg/js_bintrees
     first = _.first @events
@@ -56,8 +64,13 @@ class MemoryStore
     last.next = event
     event.previous = last
     @last = last
+    @_length = if @first and @last then @last.timestamp - @first.timestamp else 0
 
     @events.push event
+
+    delay 0, ->
+      status yes
+    yes # of course memory store get flushed instantly
 
   # Get the previous Event
   previous: (event, onComplete) ->
@@ -68,4 +81,9 @@ class MemoryStore
     delay 0, -> onComplete event.next
 
   # Compute the duration
-  duration: -> if @first and @last then @last.timestamp - @first.timestamp else 0
+  length: (cb=no) => 
+    if cb 
+      delay 0, => cb @_length
+      return
+    else
+      @_length

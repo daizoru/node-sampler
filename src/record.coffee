@@ -34,110 +34,30 @@ moment = require 'moment'
 
 # project modules
 {delay,contains} = require './misc/toolbox'
-{Record} = require './record'
+stores = require './stores'
+Playback = require './playback'
 
-class Read
-
-  constructor: (main) ->
-    @rate = 1.0
-    @looped = no
-    late = 0
-
-    main.output = (cb) ->
-      main.on 'event', cb
-
-    fire = (event, onComplete=no) =>
-      fired = moment()
-      main.emit 'event', timestamp: event.timestamp, data: event.data 
-      main.store.next event, (next) =>
-
-        # did we hit the loop cue point?
-        if next is main.store.first
-          main.emit 'end', looping: @looped
-          if onComplete
-            onComplete looping: @looped
-          return unless @looped
-
-        # theorical delay until next event (with threshold applied)
-        theoricDelay = (next.timestamp - event.timestamp) / @rate
-
-        # let's compute how much time we lost with database/network queries
-        dbLatency = moment() - fired - Math.abs(late)
-
-        # we will compensate system latency by shorting time to next event
-        realDelay = theoricDelay - dbLatency
-        if realDelay < 0
-          late = realDelay
-          realDelay = 0 
-        delay realDelay, -> fire next, onComplete
-
-    # give playback capabilities to the main class
-    main.startStream = (cb=no) => 
-      onComplete = no
-
-      if rate
-        if cb
-          @rate = rate
-          onComplete = cb
-        else
-          if _.isNumber rate
-            @rate = rate
-          else
-            onComplete = rate
-       
-      #log "PlaybackModule: playing at rate #{@rate}"
-      first = main.store.first
-      if first
-        #log "firing first event"
-        fire first, onComplete
-      else
-        #log "no event to fire"
-        1
-
-class Write
-
-  constructor: (main) ->
-
-    @inputs = []
-
-    # give record capabilities to the main class
-    main.write = (data) -> 
-      #log "RecordModule: pushing into database the event"
-      timestamp = moment()
-      # do an INSERT (or PUT) in the database
-      main.store.insert         
-        timestamp: timestamp
-        data: data
-      #log "RecordModule: db is #{inspect main.database.events}"
-
-      # update the duration cache
-      main.duration = main.store.duration()
-      timestamp
-
-    main.listen = (stream, params) =>
-      unless stream
-        throw "error, no source specified"
-        return
-      msg = if params.msg? then params.msg else 'data'
-
-      filter = if params.filter? then params.filter else (d) -> d
-      input = stream.on msg, (data) -> main.write filter(data)
-      @inputs.push input
-      #log "started listening to #{msg}"
-
-    main.close = ->
-      
-    main.overwrite = (timestamp, data) -> 
-      throw "Not Implemented"
-      return
-
-class Record extends Stream
+class Record
   constructor: (url) ->
-    super()
-    duration = 0
-    @store = new MemoryStore()
+
+    # default store
+    @store = new stores.InMemory()
+
+    # more esoteric ones
     if contains "file://", url
-      @store = new SimpleFile url
-    new Write @
-    new Read @
+      @store = new stores.SimpleFile(url)
+
+
+  length: (cb=no) => @store.length cb
+
+  # write to the database. Return yes if flushed, no if uncertain.
+  # status is called when the entry is really written to the base,
+  # or if something bad happened
+  write: (timestamp, data, status=->) => 
+    @store.write timestamp, data, status
+
+  newPlayback: (ccntroller) =>
+    new Playback @, controller
+
+
 

@@ -33,7 +33,8 @@ class Newsfeed extends Stream
     return
 
   # Stream API
-  start: =>
+  pipe: (destination) =>
+    destination
     @map (event) =>
       if event
         @emit 'data', event
@@ -52,32 +53,30 @@ describe 'Simple API', ->
     it 'should record 8 events (1 every 50~100ms)', (done) ->
       @timeout 3000 # TODO use something better here
       recorder = new simple.Recorder record
-      feed.map (event) ->
-        if event
-          recorder.rec event
-        else
-          done()
+      feed.map (event) -> if event then recorder.rec(event) else done()
 
   describe '#play()', ->
+    length = record.length()
     it 'playback at normal speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 1.0)
-      player = new simple.Player record, onEnd: -> done()
+      @timeout TIMEOUT + (length / 1.0)
+      new simple.Player record, 
+        onEnd: -> done()
 
     it 'playback at 2.0x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 2.0)
-      player = new simple.Player record,
+      @timeout TIMEOUT + (length / 2.0)
+       new simple.Player record,
         rate: 2.0
         onEnd: -> done()
 
     it 'playback at 10.0x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 10.0)
-      player = new simple.Player record,
+      @timeout TIMEOUT + (length / 10.0)
+      new simple.Player record,
         rate: 10.0
         onEnd: -> done()
 
     it 'playback at 0.345x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 0.345)
-      player = new simple.Player record,
+      @timeout TIMEOUT + (length / 0.345)
+       new simple.Player record,
         rate: 0.345
         onEnd: -> done()
 
@@ -88,25 +87,27 @@ describe 'Stream API', ->
   # create a new record, this one will be stream written!
   record = new Record()
   
-  describe '#rec()', ->
+  describe '#stream.Recorder()', ->
     it 'should record 8 events (1 every 50~100ms)', (done) ->
       @timeout 3000
+      recorder = new stream.Recorder record
       feed.on 'end', -> done()
-      feed.start()
+      feed.pipe()
 
   describe '#play()', ->
+    length = record.length()
     it 'playback at normal speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 1.0)
+      @timeout TIMEOUT + (length / 1.0)
       record.play -> done()
 
     it 'playback at 2.0x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 2.0)
+      @timeout TIMEOUT + (length / 2.0)
       record.play 2.0, -> done()
 
     it 'playback at 10.0x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 10.0)
+      @timeout TIMEOUT + (length / 10.0)
       record.play 10.0, -> done()
 
     it 'playback at 0.345x speed', (done) ->
-      @timeout TIMEOUT + (record.duration / 0.345)
+      @timeout TIMEOUT + (length / 0.345)
       record.play 0.345, -> done()

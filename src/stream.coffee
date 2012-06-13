@@ -33,45 +33,55 @@ _ = require 'underscore'
 moment = require 'moment'
 
 # project modules
-{delay,contains} = require './misc/toolbox'
-{Record} = require './record'
+{delay,contains,simpleFactory} = require './misc/toolbox'
+Record = require './record'
+Cursor = require './cursor'
 
 # STREAMING API
 class Recorder extends Stream
   constructor: (url="") ->
-    if url
-      if _.isString url
-        @record = new Record url
-      else
-        @record = url
-    else
-      @record = new Record()
+    log "stream.Recorder#constructor(#{url})"
+    @record = simpleFactory Record, url
+
+    @record.on 'close', =>
+      @emit 'close'
+
+  write: (data) ->
+    @record.write data
   
 class Player extends Stream
-  constructor: (@record, options) -> 
+  constructor: (url, options) -> 
+    log "stream.Player#constructor(#{url})"
     @config =
       rate: 1.0
       autoplay: on
       timestamp: no
+      looped: no
+
     for k,v of options
       @config[k] = v
 
+    @record = simpleFactory Record, url
+
+    @cursor = new Cursor
+      record: @record
+      rate: @config.rate
+      looped: @config.looped
+      on:
+        data: (timestamp, data) =>
+          @emit 'data', data
+        end: =>
+          @emit 'end'
+        error: (err) =>
+          @emit 'end'
+          @emit 'error', err
     if @config.autoplay
-      @play @config.rate
+      @resume()
 
-    @record.on 'data', (data) =>
-      if @config.timestamp
-        @emit 'data', 
+  resume: =>
+    log "stream.Player#start()"
+    @cursor.resume()
 
-  play: (rate=no) ->
-    r = if rate then rate else @rate
-    @record.startStream r
-
-#recorder = new StreamRecorder()
-#input.pipe(recorder)
-
-# at any time, you can have access to the inner record
-#recorder.record
-
-#player = new StreamPlayer(record)
-#player.pipe(output)
+  pause: =>
+    log "stream.Player#pause()"
+    @cursor.pause()

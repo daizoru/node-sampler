@@ -26,62 +26,15 @@
 
 # standard modules
 {log,error,inspect} = require 'util'
-{Stream} = require 'stream'
-
-# third party modules
-_ = require 'underscore'
-moment = require 'moment'
 
 # project modules
-{delay,contains,simpleFactory} = require './misc/toolbox'
-{Record} = require './record'
+{delay,contains} = require './misc/toolbox'
+InMemory = require './store/memory'
 
-# SIMPLE API
-class Recorder
-  constructor: (url=no) ->
-    log "simple.Recorder#constructor(#{url})"
-    @record = simpleFactory Record, url
+class exports.SimpleFile
+  constructor: () ->
 
+class exports.Redis
+  constructor: () ->
 
-  # SimpleRecorder API
-  rec: (data,status=->) => 
-    log "simple.Recorder#rec(#{data}): simple rec"
-    @record.write moment(), data, status
-  
-class Player
-    constructor: (url, options) -> 
-    log "simple.Player#constructor(#{url}, options)"
-
-    @config =
-      rate: 1.0
-      autoplay: on
-      timestamp: no
-      looped: no
-      onEach: (event) -> log "#{event.timestamp}: #{event.data}"
-      onEnd: ->
-      onErr: (err) ->
-
-    for k,v of options
-      @config[k] = v
-
-    @record = simpleFactory Record, url
-
-    @cursor = new Cursor
-      record: @record
-      rate: @config.rate
-      looped: @config.looped
-      on:
-        data: (timestamp, data) =>
-          @config.onEach timestamp, data
-        end: =>
-          @config.onEnd()
-        error: (err) =>
-          @config.onEnd()
-          @config.onErr err
-
-    if @config.autoplay
-      @start()
-
-  start: ->
-    log "simple.Player#start()"
-    @cursor.resume()
+exports.InMemory = InMemory
