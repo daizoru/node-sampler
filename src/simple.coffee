@@ -57,9 +57,9 @@ class Player
       autoplay: on
       timestamp: no
       looped: no
-      onEach: (event) -> log "#{event.timestamp}: #{event.data}"
+      onData: (event) -> log "#{event.timestamp}: #{event.data}"
       onEnd: ->
-      onErr: (err) ->
+      onError: (err) ->
 
     for k,v of options
       @config[k] = v
@@ -72,12 +72,12 @@ class Player
       looped: @config.looped
       on:
         data: (timestamp, data) =>
-          @config.onEach timestamp, data
+          @config.onData timestamp, data
         end: =>
           @config.onEnd()
         error: (err) =>
           @config.onEnd()
-          @config.onErr err
+          @config.onError err
 
     if @config.autoplay
       @start()

@@ -64,76 +64,23 @@
 
 ## Documentation
 
-### Functions
+  Sampler has two differents APIs: one for classic, quick & dirty code (Simple API),
+  the second for cleaner, async streamlined code (Stream API)
 
-#### sampler = new Sampler()
-
-#### sampler.listen stream (, {msg, autoplay, filter})
-
-  Example:
+### Simple API
 
 ``` coffeescript
 
-  sampler.listen stream,
-    msg: 'data'
-    autostart: yes
-    filter: (err, msg) -> msg * 2.0
+{Record,simple} = require 'sampler'
 
-```
+# create record. a record is where your events are stored
+record = new Record() # by default no arguments -> in memory store
 
-### Basic example
+# now, you can start playing with your record. 
+# let's record things in the record! for this, you need a Recorder
+recorder = new simple.Recorder(record)
 
-``` coffeescript
-
-Sampler = require 'sampler'
-
-# for the moment, this create a default, in-memory sampler
-sp = new Sampler()
-
-# listen to events
-sp.on 'event', (event) -> log "#{event.timestamp}: #{event.data}"
-sp.on 'end', -> log "end"
-
-# coffee-style timeouts
-delay = (t,f) -> setTimeout f, t
-
-# sample some dummy events
-log "sampling events.."
-delay 100, -> sp.rec companyhelpdesk: "hi how can I help you"
-delay 500, -> sp.rec facebook: "wow! this was a big earthquake"
-delay 1000, -> sp.rec twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out"
-delay 1500, -> sp.rec twitter: "ZOMBIE APOCALYPSE!!1!!"
-
-delay 2000, -> 
-  log "playing events back.."
-  sp.play()
-
-delay 5000, -> 
-  log "playing events back. and faster."
-   # twice faster!
-  sp.play 2.0, ->
-    log "finished"
-
-```
-
-  which should output something like:
-
-```
-
-10 Jun 14:57:49 - sampling events..
-10 Jun 14:57:51 - playing events back..
-10 Jun 14:57:51 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
-10 Jun 14:57:51 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
-10 Jun 14:57:52 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
-10 Jun 14:57:52 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
-10 Jun 14:57:52 - end
-10 Jun 14:57:54 - playing events back. and faster.
-10 Jun 14:57:54 - 1339333069383: { companyhelpdesk: 'hi how can I help you' }
-10 Jun 14:57:54 - 1339333069783: { facebook: 'wow! this was a big earthquake' }
-10 Jun 14:57:54 - 1339333070284: { twitter: 'just saw my dead neighbor walking in my street. It\'s weird. wait I\'m gonna check it out' }
-10 Jun 14:57:54 - 1339333070784: { twitter: 'ZOMBIE APOCALYPSE!!1!!' }
-10 Jun 14:57:54 - end
-10 Jun 14:57:54 - finished
+recorder.rec "hello"
 
 ```
 
@@ -142,20 +89,35 @@ delay 5000, ->
 ### Recording external inputs
 
   Eg. to record the twitter stream
-```coffeescript
 
+``` coffeescript
+
+  {log}   = require'util'
+  sampler = require 'sampler'
   Twitter = require 'ntwitter'
+
+  # connect to Twitter using your own credential
   twit = new Twitter
     consumer_key: 'Twitter'
     consumer_secret: 'API'
     access_token_key: 'keys'
     access_token_secret: 'go here'
 
-  sampler = new Sampler()
-
+  # let's open a stream on random tweets
   twit.stream 'statuses/sample', (stream) ->
-    sampler.listen stream, 
-      msg: 'data'
+
+    # that's all you have to do!
+    recorder = new sampler.stream.Recorder(stream)
+
+    terminate = ->
+      stream.destroy()
+
+      # let's play some music!
+      # by default a sampler will simply playback the event
+      # (it's in autorun + speed 1x by default)
+      player = new sampler.simple.Player(recorder.record)
+
+    setTimeout terminate, 10000
 
 
 ```
