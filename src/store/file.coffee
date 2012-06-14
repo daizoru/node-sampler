@@ -82,14 +82,12 @@ class module.exports extends Memory
       when "SAMPLER"
         @saveSnapshot = (path, data, cb) =>
           #log "File: saving snapshot using Snappy"
-          #dumpString = JSON.stringify data
-          #compressedBuffer = snappy.compressSync dumpString
-          snappy.compress data, (err, compressed) ->
-            if err
-              cb err
-              return
-            fs.writeFile path, compressedBuffer, (err) ->
-              cb err
+          dumpString = JSON.stringify data
+          compressed = snappy.compressSync dumpString
+          fs.writeFile path, compressed, (err) ->
+            log "wrote to file: #{compressed}"
+            log "writeFile err: #{err}"
+            cb err
 
       else
         log "unknow format: #{@format}"

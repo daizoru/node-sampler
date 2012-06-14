@@ -10,8 +10,8 @@ sampler = require '../lib/sampler'
 delay = (t, f) -> setTimeout f, t
 
 # PARAMETERS
-duration = 10
-timeline = new sampler.Record "file://twitter.json"
+duration = 15
+timeline = new sampler.Record "file://twitter.smp"
 twit = new Twitter
   consumer_key: process.env.TWITTER_CONSUMER_KEY
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET
@@ -29,11 +29,7 @@ twit.stream 'statuses/sample', (stream) ->
   stream.on 'data', (data) -> 
     timeline.write moment(data.created_at), data.text
   delay duration*1000, ->
-    log "playing tweets back"
-    new sampler.SimplePlayer timeline,
-      speed: 2.0
-      onData: (tm, data) ->
-        log "#{tm}: #{inspect data}"
-      onEnd: ->
-        process.exit()
+    log "recording terminated"
+    stream.destroy() # clean exit?
+    #process.exit() # problem; is we exit during a write(), everything in the file is lost
   log "listening for #{duration} seconds"
