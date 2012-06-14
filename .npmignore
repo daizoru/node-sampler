@@ -1,3 +1,11 @@
+examples/test.json
+examples/test.yaml
+examples/test.yml
+examples/test.smp
+examples/twitter.json
+examples/twitter.yaml
+examples/twitter.yml
+examples/twitter.smp
 env.sh
 test.coffee
 production.yaml

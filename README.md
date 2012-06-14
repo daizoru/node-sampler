@@ -75,6 +75,30 @@
 
 ### Simple API
 
+Record formats
+
+``` coffeescript
+
+{Record} = require 'sampler'
+
+# data will be stored in memory
+#record = new Record()
+
+# stored as YAML file 
+# (not very good: issues with encoding of international tweets, for instance)
+record = new Record "file://examples/test.yml"
+
+
+# stored as JSON file 
+# not bad, it's compact (1 line) however it might not be very good for large files
+record = new Record "file://examples/test.json"
+
+# stored as SAMPLE file 
+# compressed json, using Snappy
+record = new Record "file://examples/test.smp"
+
+```
+
 Recording
 
 ``` coffeescript
@@ -122,38 +146,46 @@ player = new SimplePlayer(record)
 
   To be continued
 
-### Recording external inputs
+## Examples
 
-  Eg. to record the twitter stream
+### Playing with Twitter Stream
+
+  Here I am using some environment variables to define the Twitter tokens (à la Heroku),
+  so don't forget to change this to fit your own environment.
 
 ``` coffeescript
 
 # standard node library
-{log,inspect}   = require 'util'
+{log,inspect} = require 'util'
 
 # third-parties libraries
-Twitter = require 'ntwitter'
-moment = require 'moment'
+Twitter =       require 'ntwitter'
+moment =        require 'moment'
 
 # sampler modules
-sampler = require '../lib/sampler'
+sampler =       require '../lib/sampler'
+
+# shortcuts
 delay = (t, f) -> setTimeout f, t
 
 # PARAMETERS
-duration = 5
-timeline = new sampler.Record()
+duration = 10
+timeline = new sampler.Record "file://twitter.json"
 twit = new Twitter
   consumer_key: process.env.TWITTER_CONSUMER_KEY
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET
   access_token_key: process.env.TWITTER_TOKEN_KEY
   access_token_secret: process.env.TWITTER_TOKEN_SECRET
 
-
 # let's open a stream on random tweets
 twit.stream 'statuses/sample', (stream) ->
   recorder = new sampler.SimpleRecorder timeline
   stream.on 'error', (err) ->
     log "twitter error: #{inspect err}"
+    # there is a bug in ntwitter. sometimes tweets come from here!
+    if err.text?
+      timeline.write moment(err.created_at), err.text
+
   stream.on 'data', (data) -> 
     timeline.write moment(data.created_at), data.text
   delay duration*1000, ->

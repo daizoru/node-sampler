@@ -39,7 +39,7 @@ BinaryTree = require '../misc/btree'
 
 # TODO emit errors when there are.. errors
 class module.exports extends events.EventEmitter
-  constructor: () ->
+  constructor: (@config) ->
     @events = []
     @first = no
     @last = no
@@ -84,6 +84,8 @@ class module.exports extends events.EventEmitter
   next: (event, onComplete) -> 
     delay 0, -> onComplete event.next
 
+  save: -> yes
+
   # Compute the duration
   length: (cb=no) => 
     if cb 
@@ -91,5 +93,5 @@ class module.exports extends events.EventEmitter
       delay 0, => cb @_length
       return
     else
-      log "No CB: #{@_length}"
+      #log "No CB: #{@_length}"
       @_length

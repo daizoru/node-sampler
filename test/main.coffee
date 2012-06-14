@@ -53,7 +53,7 @@ describe 'new Record(\'test.sample\')', ->
   # our tests
   describe 'and Simple API', ->
 
-    record = new Record 'file://test.sample'
+    record = new Record 'file://examples/test.sample'
     length = 0
     it 'record some events in about 100ms', (done) ->
       #@timeout 10000
@@ -64,6 +64,7 @@ describe 'new Record(\'test.sample\')', ->
           recorder.write event
         else
           length = record.length()
+          record.save() # save the file
           done()
 
     it 'playback at normal speed', (done) ->

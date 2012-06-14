@@ -54,10 +54,17 @@ getFormat = (path) ->
 
 # TODO emit errors when there are.. errors
 class module.exports extends Memory
-  constructor: (@path) ->
+  constructor: (@path, options) ->
     super()
+    @config =
+      autosave: -1
+      filename: ->
+
+    for k,v of options
+      @config[k]=v
+
     @buff = []
-    @buffMax = 3
+    @buffMax = 1 # for the moment we auto-save every single event
     @isWriting = no
 
     # TODO: smarter IO (eg. only append to existing file)
@@ -75,10 +82,14 @@ class module.exports extends Memory
       when "SAMPLER"
         @saveSnapshot = (path, data, cb) =>
           #log "File: saving snapshot using Snappy"
-          dumpString = YAML.stringify data
-          compressedBuffer = snappy.compressSync dumpString
-          fs.writeFile path, compressedBuffer, (err) ->
-            cb err
+          #dumpString = JSON.stringify data
+          #compressedBuffer = snappy.compressSync dumpString
+          snappy.compress data, (err, compressed) ->
+            if err
+              cb err
+              return
+            fs.writeFile path, compressedBuffer, (err) ->
+              cb err
 
       else
         log "unknow format: #{@format}"
@@ -89,45 +100,49 @@ class module.exports extends Memory
   _load: (path, cb=->) ->
     # use YAML.stream.parse
   
+  save: =>
+    if @isWriting
+      log "CANNOT FLUSH RIGHT NOW"
+      return no
+
+    @isWriting = yes
+
+    # serialize references
+    snapshot =
+      # don't serialize what can be inferred
+      #first: 0+@first.timestamp
+      #last: 0+@last.timestamp
+      events: []
+    @buff = []
+    for event in @events
+      snapshot.events.push [
+        0+event.timestamp
+        # don't serialize what can be inferred
+        #previous: 0+event.previous.timestamp
+        #next: 0+event.next.timestamp
+        event.data
+      ]
+
+    log "FLUSHING STARTED: (#{@path}, #{snapshot})"
+    @saveSnapshot @path, snapshot, (err) =>
+      log "FLUSHING ENDED: saveSnapshot returned: #{err}"
+      @isWriting = no
+      if err
+        log "store.File: _writeEvent: could not write events to disk.."
+        @emit 'error', err
+      else
+        log "store.File: _writeEvent: events wrote to disk! sending flushed=yes.."
+        @emit 'flushed'
+    no
+
   _writeEvent: (event) =>
     @events.push event
     @buff.push event
 
+    # auto-save when buffer is full
+    # TODO also auto-save every N seconds even if buffer not full
     if @buff.length >= @buffMax
-      if @isWriting
-        log "cannot flush right now, previous flushing is still in progress.."
-        return no
-
-      log "buffer max reached -> flushing to disk"
-
-      @isWriting = yes
-
-      # serialize references
-      snapshot =
-        # don't serialize what can be inferred
-        #first: 0+@first.timestamp
-        #last: 0+@last.timestamp
-        events: []
-      @buff = []
-      for event in @events
-        snapshot.events.push [
-          0+event.timestamp
-          # don't serialize what can be inferred
-          #previous: 0+event.previous.timestamp
-          #next: 0+event.next.timestamp
-          event.data
-        ]
-
-      log "calling fsWrite with (#{@path}, #{snapshot})"
-      @saveSnapshot @path, snapshot, (err) =>
-        @isWriting = no
-        if err
-          #log "store.File: _writeEvent: could not write events to disk.."
-          @emit 'error', err
-        else
-          #log "store.File: _writeEvent: events wrote to disk! sending flushed=yes.."
-          @emit 'flushed'
-      no # tell the stream our buffer is full, and he must stop
+      @save()
     # else we resume
     else
       yes

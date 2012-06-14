@@ -37,18 +37,23 @@ stores = require './stores'
 
 class module.exports extends events.EventEmitter
 
-  constructor: (url="") ->
+  constructor: (url="", options) ->
+    @config =
+      autosave: -1
+
+    for k,v of options
+      @config[k]=v
 
     @waiting = []
 
     # default store
-    @store = new stores.Memory()
+    @store = new stores.Memory @config
 
     # more esoteric ones
     if contains "file://", url
       path = url.split("file://")[1]
       log "Record(#{url}) -> PATH #{path}"
-      @store = new stores.File path
+      @store = new stores.File path, @config
 
     # 
     @store.on 'error', (err) =>
@@ -71,9 +76,11 @@ class module.exports extends events.EventEmitter
   # status is called when the entry is really written to the base,
   # or if something bad happened
   write: (timestamp, data, cb=no) => 
+    log "Record: write()"
     @waiting.push cb if cb
     @store.write timestamp, data
 
-
-
-
+  save: (cb=no) =>
+    log "Record: save()"
+    @waiting.push cb if cb
+    @store.save()

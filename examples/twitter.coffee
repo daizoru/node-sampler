@@ -10,8 +10,8 @@ sampler = require '../lib/sampler'
 delay = (t, f) -> setTimeout f, t
 
 # PARAMETERS
-duration = 5
-timeline = new sampler.Record()
+duration = 10
+timeline = new sampler.Record "file://twitter.json"
 twit = new Twitter
   consumer_key: process.env.TWITTER_CONSUMER_KEY
   consumer_secret: process.env.TWITTER_CONSUMER_SECRET
@@ -24,6 +24,8 @@ twit.stream 'statuses/sample', (stream) ->
   recorder = new sampler.SimpleRecorder timeline
   stream.on 'error', (err) ->
     log "twitter error: #{inspect err}"
+    if err.text?
+      timeline.write moment(err.created_at), err.text
   stream.on 'data', (data) -> 
     timeline.write moment(data.created_at), data.text
   delay duration*1000, ->
