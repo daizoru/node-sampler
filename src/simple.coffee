@@ -29,7 +29,6 @@
 {Stream} = require 'stream'
 
 # third party modules
-_ = require 'underscore'
 moment = require 'moment'
 
 # project modules
@@ -43,15 +42,22 @@ class exports.Recorder
     #log "SimpleRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
 
-  # SimpleRecorder API
-  write: (data,status=->) => 
-    #log "SimpleRecorder#write(#{data})"
-    @record.write moment(), data, status
+    @record.on 'error', (err) =>
+      log "SimpleRecorder: underlying record got an error: #{err}"
+      return
+    @record.on 'flushed', =>
+      log "SimpleRecorder: underlying record flushed to disk. We don't care"
+      return
 
   # SimpleRecorder API
-  writeAt: (timestamp, data,status=->) => 
+  write: (data, cb=no) => 
+    #log "SimpleRecorder#write(#{data})"
+    @record.write moment(), data, cb
+
+  # SimpleRecorder API
+  writeAt: (timestamp, data, cb=no) => 
     #log "SimpleRecorder#writeAt(#{timestamp},#{data})"
-    @record.write timestamp, data, status
+    @record.write timestamp, data, cb
   
 class exports.Player
   constructor: (url, options) -> 

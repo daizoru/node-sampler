@@ -28,11 +28,10 @@
 {log,error,inspect} = require 'util'
 
 # third party modules
-_ = require 'underscore'
-moment = require 'moment'
+moment             = require 'moment'
 
 # project modules
-{delay,contains} = require './misc/toolbox'
+{delay,contains}   = require './misc/toolbox'
 
 class module.exports
 

@@ -3,7 +3,7 @@
 {log,error,inspect} = require 'util'
 {Stream} = require 'stream'
 moment = require 'moment'
-_ = require 'underscore'
+
 # helper functions from our app
 {delay} = require '../lib/misc/toolbox'
 
@@ -49,42 +49,69 @@ class Newsfeed extends Stream
 TIMEOUT = 50 # 10 milliseconds
 
 # our tests
-describe 'Simple API', ->
+describe 'new Record(\'test.sample\')', ->
+  # our tests
+  describe 'and Simple API', ->
 
-  record = new Record()
-  length = 0
-  it 'record some events in about 100ms', (done) ->
-    #@timeout 10000
-    recorder = new SimpleRecorder record
-    feed = new Newsfeed()
-    feed.resume (event) -> 
-      if event
-        recorder.write event
-      else
-        length = record.length()
-        done()
+    record = new Record 'file://test.sample'
+    length = 0
+    it 'record some events in about 100ms', (done) ->
+      #@timeout 10000
+      recorder = new SimpleRecorder record
+      feed = new Newsfeed()
+      feed.resume (event) -> 
+        if event
+          recorder.write event
+        else
+          length = record.length()
+          done()
 
-  it 'playback at normal speed', (done) ->
-    @timeout TIMEOUT + (length / 1.0)
-    new SimplePlayer record, onEnd: -> done()
+    it 'playback at normal speed', (done) ->
+      @timeout TIMEOUT + (length / 1.0)
+      new SimplePlayer record, onEnd: -> done()
 
-  it 'playback at 2.0x speed', (done) ->
-    @timeout TIMEOUT + (length / 2.0)
-    new SimplePlayer record,
-      speed: 2.0
-      onEnd: -> done()
+###
 
-  it 'playback at 10.0x speed', (done) ->
-    @timeout TIMEOUT + (length / 10.0)
-    new SimplePlayer record,
-      speed: 10.0
-      onEnd: -> done()
 
-  it 'playback at 0.345x speed', (done) ->
-    @timeout TIMEOUT + (length / 0.345)
-    new SimplePlayer record,
-      speed: 0.345
-      onEnd: -> done()
+# our tests
+describe 'new Record()', ->
+  # our tests
+  describe 'and Simple API', ->
+
+    record = new Record()
+    length = 0
+    it 'record some events in about 100ms', (done) ->
+      #@timeout 10000
+      recorder = new SimpleRecorder record
+      feed = new Newsfeed()
+      feed.resume (event) -> 
+        if event
+          recorder.write event
+        else
+          length = record.length()
+          done()
+
+    it 'playback at normal speed', (done) ->
+      @timeout TIMEOUT + (length / 1.0)
+      new SimplePlayer record, onEnd: -> done()
+
+    it 'playback at 2.0x speed', (done) ->
+      @timeout TIMEOUT + (length / 2.0)
+      new SimplePlayer record,
+        speed: 2.0
+        onEnd: -> done()
+
+    it 'playback at 10.0x speed', (done) ->
+      @timeout TIMEOUT + (length / 10.0)
+      new SimplePlayer record,
+        speed: 10.0
+        onEnd: -> done()
+
+    it 'playback at 0.345x speed', (done) ->
+      @timeout TIMEOUT + (length / 0.345)
+      new SimplePlayer record,
+        speed: 0.345
+        onEnd: -> done()
 
 # our tests
 describe 'Stream API', ->
@@ -106,6 +133,9 @@ describe 'Stream API', ->
     feed.pipe(recorder)
     feed.resume()
 
+###
+
+###
   it 'playback at normal speed', (done) ->
     @timeout TIMEOUT + (length / 1.0)
     player = new StreamPlayer record

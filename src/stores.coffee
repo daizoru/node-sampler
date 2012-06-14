@@ -29,7 +29,8 @@
 
 # project modules
 {delay,contains} = require './misc/toolbox'
-InMemory = require './store/memory'
+Memory = require './store/memory'
+File = require './store/file'
 
 class exports.SimpleFile
   constructor: () ->
@@ -37,4 +38,6 @@ class exports.SimpleFile
 class exports.Redis
   constructor: () ->
 
-exports.InMemory = InMemory
+exports.File = File
+
+exports.Memory = Memory

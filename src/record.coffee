@@ -26,26 +26,42 @@
 
 # standard modules
 {log,error,inspect} = require 'util'
-{Stream} = require 'stream'
-
+# {Stream} = require 'stream'
+events = require 'events'
 # third party modules
-_ = require 'underscore'
 moment = require 'moment'
 
 # project modules
 {delay,contains} = require './misc/toolbox'
 stores = require './stores'
 
-class module.exports
+class module.exports extends events.EventEmitter
 
   constructor: (url="") ->
 
+    @waiting = []
+
     # default store
-    @store = new stores.InMemory()
+    @store = new stores.Memory()
 
     # more esoteric ones
     if contains "file://", url
-      @store = new stores.SimpleFile(url)
+      path = url.split("file://")[1]
+      log "Record(#{url}) -> PATH #{path}"
+      @store = new stores.File path
+
+    # 
+    @store.on 'error', (err) =>
+      error "Record: @store sent us an error: #{err}"
+      @emit 'error', err
+
+    @store.on 'flushed', =>
+      error "Record: @store has flushed"
+      @emit 'flushed'
+      # we use a delay for each entry, since @waiting might be very long
+      for cb in @waiting
+        delay 0, -> cb {}
+      @waiting = []
 
 
   length: (cb=no) => 
@@ -54,8 +70,9 @@ class module.exports
   # write to the database. Return yes if flushed, no if uncertain.
   # status is called when the entry is really written to the base,
   # or if something bad happened
-  write: (timestamp, data, status=->) => 
-    @store.write timestamp, data, status
+  write: (timestamp, data, cb=no) => 
+    @waiting.push cb if cb
+    @store.write timestamp, data
 
 
 

@@ -30,10 +30,10 @@
 events = require 'events'
 
 # third party modules
-_ = require 'underscore'
 moment = require 'moment'
 
 # project modules
+toolbox = require '../misc/toolbox'
 {delay,contains} = require '../misc/toolbox'
 BinaryTree = require '../misc/btree'
 
@@ -45,7 +45,7 @@ class module.exports extends events.EventEmitter
     @last = no
     @_length = 0
 
-  write: (timestamp, data, status) =>
+  write: (timestamp, data) =>
 
     event =
       timestamp: timestamp
@@ -53,13 +53,13 @@ class module.exports extends events.EventEmitter
       
     # for the moment, we can only manage insertion at the end
     # TODO later: use https://github.com/vadimg/js_bintrees
-    first = _.first @events
+    first = @events[0]
     first = event unless first
     first.previous = event
     event.next = first
     @first = first
 
-    last = _.last @events
+    last = @events[@events.length - 1]
     last = event unless last
     last.next = event
     event.previous = last
@@ -67,12 +67,14 @@ class module.exports extends events.EventEmitter
     if @first and @last
       #log "got first and last: #{@last.timestamp - @first.timestamp}"
       @_length = @last.timestamp - @first.timestamp
+    @_writeEvent event
 
+  _writeEvent: (event) =>
+    log "store.Memory: _writeEvent: writing!"
     @events.push event
-
-    delay 0, ->
-      status yes
-    yes # of course memory store get flushed instantly
+    delay 0, =>
+      @emit 'flushed'
+    yes
 
   # Get the previous Event
   previous: (event, onComplete) ->
