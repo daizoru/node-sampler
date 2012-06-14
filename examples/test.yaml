@@ -1,0 +1,19 @@
+---
+events:
+- - 1339680285232
+  - companyhelpdesk: hi how can I help you
+- - 1339680285282
+  - facebook: wow! this was a big earthquake
+- - 1339680285333
+  - ticker: -3234
+- - 1339680285386
+  - weatherstation:
+      temp: 76
+      unit: F
+- - 1339680285438
+  - counter: 42
+- - 1339680285488
+  - irc:
+      channel: '#FOO'
+      msg: <bar> ho hai
+...

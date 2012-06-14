@@ -81,8 +81,12 @@ Recording
 
 {Record, SimpleRecorder} = require 'sampler'
 
-# create record. a record is where your events are stored
-record = new Record() # by default no arguments -> in memory store
+# create a brand new record
+# if there is no argument, data is stored in memory
+#record = new Record()
+
+# file:// protocol need a path with a valid extension to guess the format (yaml,yml,json)
+record = new Record("file://examples/test.yaml")
 
 # now, you can start playing with your record. 
 # let's record things in the record! for this, you need a Recorder

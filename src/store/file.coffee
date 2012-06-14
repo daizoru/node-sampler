@@ -74,7 +74,7 @@ class module.exports extends Memory
             cb err
       when "SAMPLER"
         @saveSnapshot = (path, data, cb) =>
-          log "File: saving snapshot using Snappy"
+          #log "File: saving snapshot using Snappy"
           dumpString = YAML.stringify data
           compressedBuffer = snappy.compressSync dumpString
           fs.writeFile path, compressedBuffer, (err) ->
@@ -122,10 +122,10 @@ class module.exports extends Memory
       @saveSnapshot @path, snapshot, (err) =>
         @isWriting = no
         if err
-          log "store.File: _writeEvent: could not write events to disk.."
+          #log "store.File: _writeEvent: could not write events to disk.."
           @emit 'error', err
         else
-          log "store.File: _writeEvent: events wrote to disk! sending flushed=yes.."
+          #log "store.File: _writeEvent: events wrote to disk! sending flushed=yes.."
           @emit 'flushed'
       no # tell the stream our buffer is full, and he must stop
     # else we resume
