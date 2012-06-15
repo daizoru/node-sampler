@@ -68,6 +68,7 @@ class exports.Player
       autoplay: on
       timestamp: no
       looped: no
+      onBegin: ->
       onData: (tm,data) -> #log "#{tm}: #{data}"
       onEnd: ->
       onError: (err) ->
@@ -81,16 +82,14 @@ class exports.Player
       record: @record
       speed: @config.speed
       looped: @config.looped
-      on:
-        data: (timestamp, data) =>
-          #log "CURSOR SENT US #{timestamp} ~ #{inspect data}"
-          @config.onData timestamp, data
-        end: =>
-          #log "CURSOR SENT 'end'"
-          @config.onEnd()
-        error: (err) =>
-          #log "CURSOR SENT 'error': #{err}"
-          @config.onError err
+    @cursor.on 'begin', => 
+      delay 0, => @config.onBegin()
+    @cursor.on 'data', (timestamp, data) =>
+      delay 0, => @config.onData packet.timestamp, packet.data
+    @cursor.on 'end', =>
+      delay 0, => @config.onEnd()
+    @cursor.on 'error', (err) =>
+      delay 0, => @config.onError(err)
 
     if @config.autoplay
       @start()
@@ -98,7 +97,7 @@ class exports.Player
   start: ->
     @resume()
 
-  start: ->
+  resume: ->
     #log "simple.Player#start()"
     @cursor.resume()
 

@@ -30,23 +30,28 @@ class Newsfeed extends Stream
       remainingItems = remainingItems[1..]
       if event
         if cb 
+          log "CALLING CB event"
           cb event
         else
+          log "CALLING EMIT 'data', event"
           @emit 'data', event
 
       if (remainingItems.length is 0) or (!event)
+        log "LATEST DONE.. CALLING CB"
         if cb
+          log "CALLING CB()"
           cb()
         else
+          log "CALLING EMIT 'END'"
           @emit 'end'
         return
-
-      delay (50+Math.random(50)), =>
+      t = (50+Math.random(50))
+      delay t, =>
         run remainingItems, cb
     run @events, cb
 
 
-TIMEOUT = 50 # 10 milliseconds
+TIMEOUT = 20 # 10 milliseconds
 
 # our tests
 describe 'new Record(\'test.sample\')', ->
@@ -59,17 +64,31 @@ describe 'new Record(\'test.sample\')', ->
       #@timeout 10000
       recorder = new SimpleRecorder record
       feed = new Newsfeed()
+
+      t = moment()
       feed.resume (event) -> 
+        e = moment() - t
+
+        log "resume (event): elapsed: #{e}"
+
         if event
+          log "event"
           recorder.write event
         else
           length = record.length()
+          log "ENDED RECORD. length: #{length}"
           record.save() # save the file
           done()
 
     it 'playback at normal speed', (done) ->
-      @timeout TIMEOUT + (length / 1.0)
-      new SimplePlayer record, onEnd: -> done()
+      t = moment()
+      new SimplePlayer record, 
+        onBegin: ->
+          @timeout TIMEOUT + (length / 1.0)
+        onEnd: -> 
+          e = moment() - t
+          log "play expected: #{TIMEOUT + (length / 1.0)} elapsed: #{e}"
+          done()
 
 ###
 

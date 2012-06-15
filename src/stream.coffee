@@ -84,14 +84,17 @@ class exports.Player extends Stream
       record: @record
       speed: @config.speed
       looped: @config.looped
-      on:
-        data: (timestamp, data) =>
-          @emit 'data', data
-        end: =>
-          @emit 'end'
-        error: (err) =>
-          log "error: #{err}"
-          #@emit 'error', err
+
+    @cursor.on 'begin', => @config.onBegin()
+    @cursor.on 'data', (packet) =>
+      log "CURSOR SENT US ~ #{inspect packed}"
+      @emit 'data', packet
+    @cursor.on 'end', =>
+      log "CURSOR SENT 'end'"
+      @emit 'end'
+    @cursor.on 'error', (err) =>
+      log "CURSOR SENT 'error': #{err}"
+      @emit 'error', err
 
     if @config.autoplay
       @resume()

@@ -26,6 +26,7 @@
 
 # standard modules
 {log,error,inspect} = require 'util'
+events = require 'events'
 
 # third party modules
 moment             = require 'moment'
@@ -33,7 +34,7 @@ moment             = require 'moment'
 # project modules
 {delay,contains}   = require './misc/toolbox'
 
-class module.exports
+class module.exports extends events.EventEmitter
 
   constructor: (options) ->
   
@@ -42,10 +43,6 @@ class module.exports
     @store = options.record.store
     @speed = options.speed
     @looped = options.looped
-
-    @onError = options.on.error
-    @onData = options.on.data
-    @onEnd = options.on.end
 
     @enabled = yes
     @paused = no
@@ -60,8 +57,10 @@ class module.exports
   resume: () => 
     unless @enabled
       #@onEnd()
-      @onError "cannot resume: we are not enabled"
+      @emit 'error', "cannot resume: we are not enabled"
       return
+
+    @emit 'begin'
 
     @paused = no
 
@@ -74,7 +73,7 @@ class module.exports
     #log "fire: next is #{inspect @next}"
     unless @enabled
       #@onEnd()
-      @onError "cannot fire: we are not enabled"
+      @emit 'error', "cannot fire: we are not enabled"
       return
 
     if @paused
@@ -92,21 +91,22 @@ class module.exports
     # when did we fire?
     fired = moment()
 
-    # emit the event to our Player
-    delay 0, => @onData evt.timestamp, evt.data 
+    # emit the event to our Player - note this will introduce some latency
+    # TODO replace by @emit 'data', {timestamp,data}
+    @emit 'data', timestamp: evt.timestamp, data: evt.data 
 
     @store.next evt, (next) =>
 
       unless next
         log "error, no more next in the DB.."
-        @onError "store.next gave us nothing"
+        @emit 'error', "store.next gave us nothing"
         return
 
       # did we hit the loop cue point?
       if next is @store.first
         unless @looped
           @enabled = no
-          @onEnd()
+          @emit 'end'
           return
 
       # theorical delay until next event (with threshold applied)
