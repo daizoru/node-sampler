@@ -52,6 +52,38 @@ getFormat = (path) ->
     else
       "UNKNOW"
 
+
+### TODO use async, streaming file reading:
+
+writeStream = fs.createWriteStream(__dirname + "/outFile.txt");
+// every time "data" is read, this event fires
+readStream.on('data', function(textData) {
+  console.log("Found some text!");
+  writeStream.write(textData);
+});
+
+// the reading is finished...
+readStream.on('close', function () {
+  writeStream.end(); // ...close up the write, too!
+  console.log("I finished.");
+});
+
+
+"Partially buffered access methods are different. 
+They do not treat data input as a discrete event, 
+but rather as a series of events which occur as 
+the data is being read or written. They allow us
+to access data as it is being read from 
+disk/network/other I/O.
+Partially buffered methods, such as readSync() 
+and read() allow us to specify the size of the
+buffer, and read data in small chunks. They
+allow for more control (e.g. reading a file in
+non-linear order by skipping back and forth in
+the file)." (from http://book.mixu.net/ch9.html)
+
+###
+
 # TODO emit errors when there are.. errors
 class module.exports extends Memory
   constructor: (@path, options) ->
@@ -94,7 +126,7 @@ class module.exports extends Memory
         throw "unknow format: #{@format}"
         return
     
-    @autosave()
+    delay 0, => @autosave()
 
 
   # async load - the stream will resume once the file is loaded
@@ -103,11 +135,8 @@ class module.exports extends Memory
   
 
   autosave: =>
-    log "AUTOSAVING.."
-    delay 0, =>
-      @save()
+    @save()
     delay @config.autosave, =>
-      log "CALLING AFTER DELAY #{@config.autosave}"
       @autosave()
 
   save: =>
@@ -115,6 +144,7 @@ class module.exports extends Memory
       #log "CANNOT SAVE NOW - PLEASE TRY LATER"
       return
 
+    #log "SAVING"
     @isWriting = yes
 
     # serialize references
@@ -148,8 +178,7 @@ class module.exports extends Memory
     no
 
   _writeEvent: (event) =>
-    delay 0, =>
-      @events.push event
-      @buff.push event
+    @events.push event
+    @buff.push event
     yes # tell the input stream not to wait for us
 

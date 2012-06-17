@@ -136,15 +136,27 @@ Playback
 # but in the future, you will be able to load MongoDB, SQL, Redis records etc..
 record = new Record("redis://foobar")
 
-# now, you can start playing with your record. 
-# let's record things in the record! for this, you need a Player
+# create a basic player
 player = new SimplePlayer(record)
-
-# by default the player start itself automatically
 
 ```
 
-  To be continued
+### Stream API
+
+Playback
+
+``` coffeescript
+
+{Record, StreamPlayer} = require 'sampler'
+
+record = new Record "file://examples/twitter.json"
+
+player = new StreamPlayer record,
+  withTimestamp: yes
+
+player = new StreamPlayer record,
+  timestamp: yes
+
 
 ## Examples
 
@@ -192,8 +204,9 @@ twit.stream 'statuses/sample', (stream) ->
     log "playing tweets back"
     new sampler.SimplePlayer timeline,
       speed: 2.0
-      onData: (tm, data) ->
-        log "#{tm}: #{inspect data}"
+      timestamp: yes
+      onData: (event) ->
+        log "#{event.timestamp}: #{inspect event.data}"
       onEnd: ->
         process.exit()
   log "listening for #{duration} seconds"

@@ -137,9 +137,7 @@
           throw "unknow format: " + this.format;
           return;
       }
-      delay(0, function() {
-        return _this.autosave();
-      });
+      this.autosave();
     }
 
     exports.prototype._load = function(path, cb) {
@@ -150,7 +148,10 @@
 
     exports.prototype.autosave = function() {
       var _this = this;
-      this.save();
+      log("AUTOSAVING..");
+      delay(0, function() {
+        return _this.save();
+      });
       return delay(this.config.autosave, function() {
         return _this.autosave();
       });
@@ -171,6 +172,7 @@
       for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
         event = _ref2[_i];
         snapshot.events.push([0 + event.timestamp, event.data]);
+        log("AUTOSAVED");
       }
       version = 0 + this.flushing.version;
       this.flushing.version++;
@@ -187,8 +189,11 @@
     };
 
     exports.prototype._writeEvent = function(event) {
-      this.events.push(event);
-      this.buff.push(event);
+      var _this = this;
+      delay(0, function() {
+        _this.events.push(event);
+        return _this.buff.push(event);
+      });
       return true;
     };
 

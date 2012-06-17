@@ -44,6 +44,7 @@ class module.exports extends events.EventEmitter
     @speed = options.speed
     @looped = options.looped
 
+
     @enabled = yes
     @paused = no
     @next = no
@@ -59,12 +60,14 @@ class module.exports extends events.EventEmitter
     @latency = 0 # do not count latency when paused
 
   resume: () => 
+    #log "CURSOR#RESUME() CALLED"
     unless @enabled
       #@onEnd()
       @emit 'error', "cannot resume: we are not enabled"
       return
 
-
+    #if @paused
+    #  log "CURSOR#RESUME() paused -> cannot resume"
     @paused = no
 
     # du we already have a running cursor or not?

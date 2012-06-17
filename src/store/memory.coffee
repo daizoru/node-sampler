@@ -72,7 +72,10 @@ class module.exports extends events.EventEmitter
   _writeEvent: (event) =>
     #log "store.Memory: _writeEvent: writing!"
     @events.push event
-    @emit 'flushed', @flushing.version++
+
+    # the memory store does NOT need to send 'flushed' events
+    #@emit 'flushed', @flushing.version++
+
     yes
 
   # Get the previous Event

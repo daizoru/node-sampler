@@ -39,41 +39,49 @@ Cursor = require './cursor'
 # STREAMING API
 class exports.Recorder extends Stream
   constructor: (url="") ->
-    log "StreamRecorder#constructor(#{url})"
+
+    #log "StreamRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
 
     @record.on 'error', (version, err) =>
-      log "StreamRecorder: underlying record got an error, we can send it too: #{err}"
+      log "StreamRecorder: got error: #{err}"
       @emit 'error', err
       return
 
     @record.on 'flushed', (version) =>
-      log "StreamRecorder: underlying record flushed to disk. We can send 'drain'"
+      #log "StreamRecorder: disk flushed, emitting'drain'"
       @emit 'drain'
       return
 
+    @writable = yes
+
   end: (data) =>
     #log "StreamRecorder#end(#{inspect data})"
+    @emit 'close' # optional
     #@record.close()
 
   # SimpleRecorder API
   write: (data) => 
-    log "StreamRecorder#write(#{data})"
+    #log "StreamRecorder#write(#{inspect data})"
     @record.write moment(), data
+    yes
 
   # SimpleRecorder API
   writeAt: (timestamp, data) => 
-    log "StreamRecorder#writeAt(#{timestamp},#{data})"
+    #log "StreamRecorder#writeAt(#{timestamp},#{inspect data})"
     @record.write timestamp, data
+    yes
   
 class exports.Player extends Stream
   constructor: (url, options) -> 
-    log "StreamPlayer#constructor(#{url})"
+    #log "StreamPlayer#constructor(#{url})"
     @config =
       speed: 1.0
-      autoplay: on
-      timestamp: no
+      autoplay: yes
+      withTimestamp: no
       looped: no
+
+    @resumed = no
 
     for k,v of options
       @config[k] = v
@@ -85,27 +93,35 @@ class exports.Player extends Stream
       speed: @config.speed
       looped: @config.looped
 
-    @cursor.on 'begin', => @config.onBegin()
-    @cursor.on 'data', (packet) =>
-      log "CURSOR SENT US ~ #{inspect packed}"
-      @emit 'data', packet
-    @cursor.on 'end', =>
-      log "CURSOR SENT 'end'"
-      @emit 'end'
+    @cursor.on 'begin', =>
+      # ignore this for the moment
+
+    if @config.withTimestamp
+      @cursor.on 'data', (data) => @emit 'data', data
+    else
+      @cursor.on 'data', (data) => @emit 'data', data.data
+
+    @cursor.on 'end', => @emit 'end'
     @cursor.on 'error', (err) =>
-      log "CURSOR SENT 'error': #{err}"
+      #log "CURSOR SENT 'error': #{err}"
       @emit 'error', err
-    if @config.autoplay
-      @resume()
+
+    @resume() if @config.autoplay
 
 
   resume: =>
-    log "StreamPlayer#resume()"
-    @cursor.resume()
+    #log "StreamPlayer#resume(): checking.."
+    unless @resumed
+      #log "...ok"
+      @resumed = yes
+      @cursor.resume()
 
   pause: =>
-    log "StreamPlayer#pause()"
-    @cursor.pause()
+    #log "StreamPlayer#pause(): checking.."
+    if @resumed
+      #log "...ok"
+      @resumed = no
+      @cursor.pause()
 
 
 

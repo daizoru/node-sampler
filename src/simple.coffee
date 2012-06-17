@@ -85,8 +85,8 @@ class exports.Player
 
     @config =
       speed: 1.0
-      autoplay: on
-      timestamp: no
+      autoplay: yes
+      withTimestamp: no
       looped: no
       onBegin: ->
       onData: (tm,data) -> #log "#{tm}: #{data}"
@@ -108,22 +108,16 @@ class exports.Player
     # register cursor events  
     @cursor.on 'begin', => 
       delay 0, => @config.onBegin()
-    @cursor.on 'data', (packet) =>
-      delay 0, => @config.onData packet.timestamp, packet.data
-    @cursor.on 'end', =>
-      delay 0, => @config.onEnd()
-    @cursor.on 'error', (err) =>
-      delay 0, => @config.onError(err)
 
-    if @config.autoplay
-      @start()
+    if @config.withTimestamp
+      @cursor.on 'data', (data)   => @config.onData data.timestamp, data.data
+    else
+      @cursor.on 'data', (data)   => @config.onData data.data
+    @cursor.on   'end',           => @config.onEnd()
+    @cursor.on   'error', (err)   => @config.onError err
 
-  start: ->
-    @resume()
+    @resume() if @config.autoplay
 
-  resume: ->
-    #log "simple.Player#start()"
-    @cursor.resume()
-
-  pause: ->
-    @cursor.pause()
+  start:  => @resume()
+  resume: => @cursor.resume()
+  pause:  => @cursor.pause()
