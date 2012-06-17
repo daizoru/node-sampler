@@ -250,6 +250,14 @@ twit.stream 'statuses/sample', (stream) ->
 
 ## Changelog
 
+### 0.0.3
+ 
+ * receiving timestamps during playback is now optional (disabled by default)
+ * various bugfixes
+ * tests are passing
+ * basic support for file storage in YAML, JSON and JSON + Snappy
+ * experimental support of Node's Stream API
+
 ### 0.0.2
 
  * REFACTORED EVERYTHING WITH FIRE
