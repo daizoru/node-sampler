@@ -147,7 +147,7 @@ Recording
 
 ``` coffeescript
 
-{Record, StreamPlayer} = require 'sampler'
+{Record, StreamRecorder} = require 'sampler'
 
 record = new Record "file://examples/twitter.json"
 
