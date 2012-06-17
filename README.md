@@ -143,7 +143,7 @@ player = new SimplePlayer(record)
 
 ### Stream API
 
-Playback
+Recording
 
 ``` coffeescript
 
@@ -151,12 +151,44 @@ Playback
 
 record = new Record "file://examples/twitter.json"
 
+recorder = new StreamRecorder record
+
+myInputStream.pipe(recorder)
+
+# that's all folks!
+```
+
+
+Playing
+
+``` coffeescript
+
+{Record, StreamPlayer} = require 'sampler'
+
+record = new Record "file://examples/twitter.json"
+
+player = new StreamPlayer record
+
+# by default there is not timestamps, however you can enable them using:
 player = new StreamPlayer record,
   withTimestamp: yes
 
-player = new StreamPlayer record,
-  timestamp: yes
+# to listen to events, just do:
+player.on 'data', (data) ->
+  # do something with the data
 
+player.on 'end', ->
+  # finished!
+
+```
+
+Piping
+
+``` coffeescript
+
+# to be continued
+
+```
 
 ## Examples
 
