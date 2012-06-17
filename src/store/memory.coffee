@@ -44,6 +44,8 @@ class module.exports extends events.EventEmitter
     @first = no
     @last = no
     @_length = 0
+    @flushing =
+      version: 1
 
   write: (timestamp, data) =>
 
@@ -53,45 +55,34 @@ class module.exports extends events.EventEmitter
       
     # for the moment, we can only manage insertion at the end
     # TODO later: use https://github.com/vadimg/js_bintrees
-    first = @events[0]
-    first = event unless first
-    first.previous = event
-    event.next = first
-    @first = first
+    @first = if @events[0] then @events[0] else event
+    @first.previous = event # connect the event to the beginning of loop
+    event.next = @first
 
-    last = @events[@events.length - 1]
-    last = event unless last
-    last.next = event
-    event.previous = last
-    @last = last
+    @last = @events[@events.length - 1]
+    @last = event unless @last
+    @last.next = event
+    event.previous = @last
+
     if @first and @last
       #log "got first and last: #{@last.timestamp - @first.timestamp}"
       @_length = @last.timestamp - @first.timestamp
     @_writeEvent event
 
   _writeEvent: (event) =>
-    log "store.Memory: _writeEvent: writing!"
+    #log "store.Memory: _writeEvent: writing!"
     @events.push event
-    delay 0, =>
-      @emit 'flushed'
+    @emit 'flushed', @flushing.version++
     yes
 
   # Get the previous Event
   previous: (event, onComplete) ->
     delay 0, -> onComplete event.previous
 
-  # Get the following Event
+  # Get the following N events
   next: (event, onComplete) -> 
     delay 0, -> onComplete event.next
 
-  save: -> yes
-
   # Compute the duration
-  length: (cb=no) => 
-    if cb 
-      log "got CB"
-      delay 0, => cb @_length
-      return
-    else
-      #log "No CB: #{@_length}"
-      @_length
+  length: () => 
+    @_length

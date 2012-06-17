@@ -39,12 +39,11 @@ class module.exports extends events.EventEmitter
 
   constructor: (url="", options) ->
     @config =
-      autosave: -1
+      autosave: 1000
 
     for k,v of options
       @config[k]=v
 
-    @waiting = []
 
     # default store
     @store = new stores.Memory @config
@@ -52,35 +51,26 @@ class module.exports extends events.EventEmitter
     # more esoteric ones
     if contains "file://", url
       path = url.split("file://")[1]
-      log "Record(#{url}) -> PATH #{path}"
+      #log "Record(#{url}) -> PATH #{path}"
       @store = new stores.File path, @config
 
     # 
-    @store.on 'error', (err) =>
+    @store.on 'error', (version, err) =>
       error "Record: @store sent us an error: #{err}"
-      @emit 'error', err
+      @emit 'error', {version: version, err: err}
 
-    @store.on 'flushed', =>
-      error "Record: @store has flushed"
+    # called whenever the store flushed a snapshot to disk
+    # flushed version is passed in argument
+    @store.on 'flushed', (version) =>
       @emit 'flushed'
-      # we use a delay for each entry, since @waiting might be very long
-      for cb in @waiting
-        delay 0, -> cb {}
-      @waiting = []
 
 
-  length: (cb=no) => 
-    @store.length cb
+  length: () => 
+    @store.length()
 
   # write to the database. Return yes if flushed, no if uncertain.
   # status is called when the entry is really written to the base,
   # or if something bad happened
-  write: (timestamp, data, cb=no) => 
-    log "Record: write()"
-    @waiting.push cb if cb
+  write: (timestamp, data) => 
     @store.write timestamp, data
 
-  save: (cb=no) =>
-    log "Record: save()"
-    @waiting.push cb if cb
-    @store.save()

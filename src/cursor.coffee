@@ -50,6 +50,10 @@ class module.exports extends events.EventEmitter
 
     @latency = 0 # incremented when we lose time..
 
+    # buffer
+    @buffer = []
+    @bufferMax = 3
+
   pause: () =>
     @paused = yes
     @latency = 0 # do not count latency when paused
@@ -60,14 +64,19 @@ class module.exports extends events.EventEmitter
       @emit 'error', "cannot resume: we are not enabled"
       return
 
-    @emit 'begin'
 
     @paused = no
 
     # du we already have a running cursor or not?
     @next = @store.first unless @next
-
+    @emit 'begin'
     @fire()
+
+  checkBuffer: =>
+    if @buffer.length < @bufferMax
+      # we need to fill it
+      log "we have some room to bufferize"
+
 
   fire: =>
     #log "fire: next is #{inspect @next}"
@@ -82,19 +91,8 @@ class module.exports extends events.EventEmitter
 
     evt = @next
 
-    #unless evt
-    #  @onEnd()
-    #  log "aborting fire, calling onEnd (next is empty)"
-    #  #@onError "cannot fire: next is empty()"
-    #  return
-
-    # when did we fire?
-    fired = moment()
-
-    # emit the event to our Player - note this will introduce some latency
-    # TODO replace by @emit 'data', {timestamp,data}
     @emit 'data', timestamp: evt.timestamp, data: evt.data 
-
+    fired = moment()
     @store.next evt, (next) =>
 
       unless next
@@ -113,13 +111,15 @@ class module.exports extends events.EventEmitter
       theoricDelay = (next.timestamp - evt.timestamp) / @speed
 
       # let's compute how much time we lost with database/network queries
-      dbLatency = moment() - fired - Math.abs(@latency)
+      dbLatency = (moment() - fired) + @latency
 
       # we will compensate system latency by shorting time to next event
       realDelay = theoricDelay - dbLatency
       if realDelay < 0
         @latency = realDelay
         realDelay = 0 
+      else
+        @latency = 0
 
       # prepare the event to be fire next time
       @next = next

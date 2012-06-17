@@ -39,25 +39,45 @@ Cursor = require './cursor'
 # SIMPLE API
 class exports.Recorder
   constructor: (url=no) ->
+
+    # Simple API use simple callbacks
+    @callbacks = []
+    @sync = 0
+
     #log "SimpleRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
 
-    @record.on 'error', (err) =>
-      log "SimpleRecorder: underlying record got an error: #{err}"
-      return
-    @record.on 'flushed', =>
-      log "SimpleRecorder: underlying record flushed to disk. We don't care"
-      return
+    @record.on 'error', (data) =>
+      if data.version > @sync
+        @sync = data.version
+        for cb in @callbacks
+          delay 0, -> cb(data.err) # error
+        @callbacks = []
+      else
+        1 # the event arrived to late - we just ignore it
+
+    @record.on 'flushed', (version) =>
+      if version > @sync
+        @sync = version
+        for cb in @callbacks
+          delay 0, -> cb() # no error
+        @callbacks = []
+      else
+        1 # the event arrived to late - we just ignore it
 
   # SimpleRecorder API
   write: (data, cb=no) => 
     #log "SimpleRecorder#write(#{data})"
-    @record.write moment(), data, cb
+   #log "Record: write()"
+    @callbacks.push cb if cb
+    @record.write moment(), data
 
   # SimpleRecorder API
   writeAt: (timestamp, data, cb=no) => 
     #log "SimpleRecorder#writeAt(#{timestamp},#{data})"
-    @record.write timestamp, data, cb
+    #log "Record: write()"
+    @callbacks.push cb if cb
+    @record.write timestamp, data
   
 class exports.Player
   constructor: (url, options) -> 
@@ -76,15 +96,19 @@ class exports.Player
     for k,v of options
       @config[k] = v
 
+    # record can emit events
     @record = simpleFactory Record, url
 
+    # cursor emit events
     @cursor = new Cursor
       record: @record
       speed: @config.speed
       looped: @config.looped
+
+    # register cursor events  
     @cursor.on 'begin', => 
       delay 0, => @config.onBegin()
-    @cursor.on 'data', (timestamp, data) =>
+    @cursor.on 'data', (packet) =>
       delay 0, => @config.onData packet.timestamp, packet.data
     @cursor.on 'end', =>
       delay 0, => @config.onEnd()

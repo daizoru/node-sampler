@@ -57,15 +57,19 @@ class module.exports extends Memory
   constructor: (@path, options) ->
     super()
     @config =
-      autosave: -1
+      autosave: 500
       filename: ->
-
+    
     for k,v of options
       @config[k]=v
 
     @buff = []
     @buffMax = 1 # for the moment we auto-save every single event
     @isWriting = no
+
+    @flushing =
+      version: 1
+      saved: 0
 
     # TODO: smarter IO (eg. only append to existing file)
     @format = getFormat @path
@@ -77,31 +81,39 @@ class module.exports extends Memory
         log "using JSON"
         @saveSnapshot = (path, data, cb) =>
           dumpString = JSON.stringify data 
-          fs.writeFile path, dumpString, (err) ->
-            cb err
+          fs.writeFile path, dumpString, (err) -> cb err
       when "SAMPLER"
         @saveSnapshot = (path, data, cb) =>
           #log "File: saving snapshot using Snappy"
           dumpString = JSON.stringify data
           compressed = snappy.compressSync dumpString
-          fs.writeFile path, compressed, (err) ->
-            log "wrote to file: #{compressed}"
-            log "writeFile err: #{err}"
-            cb err
+          fs.writeFile path, compressed, (err) -> cb err
 
       else
         log "unknow format: #{@format}"
         throw "unknow format: #{@format}"
         return
+    
+    @autosave()
+
 
   # async load - the stream will resume once the file is loaded
   _load: (path, cb=->) ->
     # use YAML.stream.parse
   
+
+  autosave: =>
+    log "AUTOSAVING.."
+    delay 0, =>
+      @save()
+    delay @config.autosave, =>
+      log "CALLING AFTER DELAY #{@config.autosave}"
+      @autosave()
+
   save: =>
     if @isWriting
-      log "CANNOT FLUSH RIGHT NOW"
-      return no
+      #log "CANNOT SAVE NOW - PLEASE TRY LATER"
+      return
 
     @isWriting = yes
 
@@ -121,26 +133,23 @@ class module.exports extends Memory
         event.data
       ]
 
-    log "FLUSHING STARTED: (#{@path}, #{snapshot})"
+    version = 0+@flushing.version
+    @flushing.version++
+    #log "WRITING TO DISK VERSION #{version}: (#{@path}, #{snapshot})"
+
     @saveSnapshot @path, snapshot, (err) =>
-      log "FLUSHING ENDED: saveSnapshot returned: #{err}"
+      @flushing.saved = version
       @isWriting = no
       if err
-        log "store.File: _writeEvent: could not write events to disk.."
+        #error "store.File: ERROR, COULD NOT WRITE TO FILE: #{err}"
         @emit 'error', err
       else
-        log "store.File: _writeEvent: events wrote to disk! sending flushed=yes.."
-        @emit 'flushed'
+        @emit 'flushed', version
     no
 
   _writeEvent: (event) =>
-    @events.push event
-    @buff.push event
+    delay 0, =>
+      @events.push event
+      @buff.push event
+    yes # tell the input stream not to wait for us
 
-    # auto-save when buffer is full
-    # TODO also auto-save every N seconds even if buffer not full
-    if @buff.length >= @buffMax
-      @save()
-    # else we resume
-    else
-      yes

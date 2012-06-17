@@ -42,12 +42,12 @@ class exports.Recorder extends Stream
     log "StreamRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
 
-    @record.on 'error', (err) =>
+    @record.on 'error', (version, err) =>
       log "StreamRecorder: underlying record got an error, we can send it too: #{err}"
       @emit 'error', err
       return
 
-    @record.on 'flushed', =>
+    @record.on 'flushed', (version) =>
       log "StreamRecorder: underlying record flushed to disk. We can send 'drain'"
       @emit 'drain'
       return
@@ -57,14 +57,14 @@ class exports.Recorder extends Stream
     #@record.close()
 
   # SimpleRecorder API
-  write: (data,cb=no) => 
+  write: (data) => 
     log "StreamRecorder#write(#{data})"
-    @record.write moment(), data, cb
+    @record.write moment(), data
 
   # SimpleRecorder API
-  writeAt: (timestamp, data, cb=no) => 
+  writeAt: (timestamp, data) => 
     log "StreamRecorder#writeAt(#{timestamp},#{data})"
-    @record.write timestamp, data, cb
+    @record.write timestamp, data
   
 class exports.Player extends Stream
   constructor: (url, options) -> 
@@ -95,7 +95,6 @@ class exports.Player extends Stream
     @cursor.on 'error', (err) =>
       log "CURSOR SENT 'error': #{err}"
       @emit 'error', err
-
     if @config.autoplay
       @resume()
 
