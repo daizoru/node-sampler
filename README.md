@@ -169,9 +169,11 @@ record = new Record "file://examples/twitter.json"
 
 player = new StreamPlayer record
 
-# by default there is not timestamps, however you can enable them using:
+# by default there is no timestamps, however you can enable them using:
 player = new StreamPlayer record,
   withTimestamp: yes
+# this will emit messages in the form {timestamp, data}
+
 
 # to listen to events, just do:
 player.on 'data', (data) ->
@@ -236,7 +238,7 @@ twit.stream 'statuses/sample', (stream) ->
     log "playing tweets back"
     new sampler.SimplePlayer timeline,
       speed: 2.0
-      timestamp: yes
+      withTimestamp: yes
       onData: (event) ->
         log "#{event.timestamp}: #{inspect event.data}"
       onEnd: ->
