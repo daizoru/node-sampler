@@ -1,3 +1,5 @@
+#!/usr/bin/env coffee
+
 # standard node library
 {log,inspect}   = require 'util'
 
