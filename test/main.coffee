@@ -2,6 +2,9 @@
 # Standard Node Library
 {log,error,inspect} = require 'util'
 {Stream} = require 'stream'
+fs = require 'fs'
+
+# thirs party libs
 moment = require 'moment'
 
 # helper functions from our app
@@ -68,45 +71,61 @@ class Newsfeed extends Stream
 
 TIMEOUT = 50 # Not good, we have a latency of 50~60ms
 
+
 # our tests
-describe 'new Record(\'test.sample\')', ->
+describe 'new Record(\'test/tmp.json\')', ->
   # our tests
-  describe 'and Simple API', ->
+  describe 'using Simple API', ->
 
-    record = new Record 'file://examples/test.sample'
-    length = 0
-    it 'record some events in about 100ms', (done) ->
-      #@timeout 10000
-      recorder = new SimpleRecorder record
-      feed = new Newsfeed()
+    fs.unlink 'test/tmp.json', (err) ->
+      unless err
+        #log "removed previous test file"
+        0
+      record = new Record 'file://test/tmp.json'
+      length = 0
 
-      t = moment()
-      feed.runFirst (event) -> 
-        e = moment() - t
+      it 'should record some events in about 100ms', (done) ->
+        #@timeout 10000
+        recorder = new SimpleRecorder record
+        feed = new Newsfeed()
 
-        #log "runFirst (event): elapsed: #{e}"
-
-        if event
-          #log "event"
-          recorder.write event
-        else
-          length = record.length()
-          #log "ENDED RECORD. length: #{length}"
-          done()
-
-    it 'playback at normal speed', (done) ->
-      t = moment()
-      @timeout 3000
-      new SimplePlayer record, 
-        onBegin: =>
-          #log "stream started. timeout set to 30 + #{TIMEOUT + (length / 1.0)}"
-          @timeout (30 + TIMEOUT + (length / 1.0))
-        onEnd: => 
+        t = moment()
+        feed.runFirst (event) -> 
           e = moment() - t
-          #log "play expected: 30 + #{TIMEOUT + (length / 1.0)}; elapsed: #{e}"
-          done()
 
+          #log "runFirst (event): elapsed: #{e}"
 
+          if event
+            #log "event"
+            recorder.write event
+          else
+            length = record.length()
+            #log "ENDED RECORD. length: #{length}"
+            recorder.close()
+            done()
+
+      it 'should playback at normal speed', (done) ->
+        t = moment()
+        new SimplePlayer record, 
+          onBegin: =>
+            #log "stream started. timeout set to 30 + #{TIMEOUT + (length / 1.0)}"
+            @timeout (30 + TIMEOUT + (length / 1.0))
+          onEnd: => 
+            e = moment() - t
+            #log "play expected: 30 + #{TIMEOUT + (length / 1.0)}; elapsed: #{e}"
+            done()
+
+      it 'should load an existing demo file', (done) ->
+        t = moment()
+        record = new Record "file://test/test.json"
+        new SimplePlayer record, 
+          onBegin: =>
+            #log "stream started. timeout set to 30 + #{TIMEOUT + (length / 1.0)}"
+            @timeout (30 + TIMEOUT + (record.length() / 1.0))
+          onEnd: => 
+            e = moment() - t
+            #log "play expected: 30 + #{TIMEOUT + (length / 1.0)}; elapsed: #{e}"
+            done()
 
 # our tests
 describe 'new Record()', ->
@@ -123,36 +142,39 @@ describe 'new Record()', ->
           recorder.write event
         else
           length = record.length()
+          recorder.close()
           done()
 
     it 'playback at normal speed', (done) ->
-      @timeout 70 + (length / 1.0)
-      new SimplePlayer record, onEnd: -> done()
+      new SimplePlayer record, 
+        onBegin:  =>  @timeout 70 + (length / 1.0)
+        onEnd:    -> done()
 
     it 'playback at 2.0x speed', (done) ->
-      @timeout 40 + (length / 2.0)
+
       new SimplePlayer record,
         speed: 2.0
-        onEnd: -> done()
+        onBegin: => @timeout 40 + (length / 2.0)
+        onEnd:   -> done()
 
     # looks like increasing speed reduce latency... WTF?
     # maybe this is bacause of the latency reduction
     it 'playback at 10.0x speed', (done) ->
-      @timeout 20 + (length / 10.0)
       new SimplePlayer record,
         speed: 10.0
+        onBegin: => @timeout 20 + (length / 10.0)
         onEnd: -> done()
 
     it 'playback at 0.345x speed', (done) ->
-      @timeout 170 + (length / 0.345)
       #log "timeout set to 160 + #{(length / 0.345)}"
       t = moment()
       new SimplePlayer record,
         speed: 0.345
+        onBegin: =>
+          @timeout 170 + (length / 0.345)
         onEnd: -> 
           #log "ELAPSED: #{moment() - t}"
           done()
-
 
 # our tests
 describe 'Stream API', ->
@@ -196,3 +218,4 @@ describe 'Stream API', ->
     @timeout 20 + (length / 10.0)
     player = new StreamPlayer record, speed: 10.0
     player.on 'end', -> done()
+

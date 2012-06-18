@@ -72,13 +72,15 @@ class module.exports extends events.EventEmitter
 
     # du we already have a running cursor or not?
     @next = @store.first unless @next
+    #log "EMIT BEGIN"
     @emit 'begin'
     @fire()
 
   checkBuffer: =>
     if @buffer.length < @bufferMax
       # we need to fill it
-      log "we have some room to bufferize"
+      #log "we have some room to bufferize"
+      1
 
 
   fire: =>
@@ -89,7 +91,7 @@ class module.exports extends events.EventEmitter
       return
 
     if @paused
-      log "cannot fire: paused"
+      #log "cannot fire: paused"
       return
 
     evt = @next
@@ -99,7 +101,7 @@ class module.exports extends events.EventEmitter
     @store.next evt, (next) =>
 
       unless next
-        log "error, no more next in the DB.."
+        #log "error, no more next in the DB.."
         @emit 'error', "store.next gave us nothing"
         return
 

@@ -37,10 +37,8 @@ stores = require './stores'
 
 class module.exports extends events.EventEmitter
 
-  constructor: (url="", options) ->
-    @config =
-      autosave: 1000
-
+  constructor: (url="", options={}) ->
+    @config = {}
     for k,v of options
       @config[k]=v
 
@@ -56,9 +54,12 @@ class module.exports extends events.EventEmitter
 
     # 
     @store.on 'error', (version, err) =>
-      error "Record: @store sent us an error: #{err}"
+      error "Record: #{err}"
       @emit 'error', {version: version, err: err}
 
+    @store.on 'ready', => 
+      @emit 'ready'
+      
     # called whenever the store flushed a snapshot to disk
     # flushed version is passed in argument
     @store.on 'flushed', (version) =>
@@ -74,3 +75,8 @@ class module.exports extends events.EventEmitter
   write: (timestamp, data) => 
     @store.write timestamp, data
 
+  ready: =>
+    @store.initialized
+  sync: =>
+    #log "RECORD: SYNC"
+    @store.sync()

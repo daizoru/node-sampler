@@ -39,13 +39,33 @@ BinaryTree = require '../misc/btree'
 
 # TODO emit errors when there are.. errors
 class module.exports extends events.EventEmitter
-  constructor: (@config) ->
+  constructor: (options={}) ->
+  
+    @config = {}
+    for k,v of options
+      @config[k] = v
+
+    @initialized = no
+
     @events = []
     @first = no
     @last = no
     @_length = 0
+
     @flushing =
       version: 1
+
+    @events = []
+
+    #log "MEMORY SCHEDULING READY"
+    delay 0, => 
+      #log "READY!"
+      @ready()
+    
+  ready: =>
+    #log "CALLED READY"
+    @initialized = yes
+    @emit 'ready'
 
   write: (timestamp, data) =>
 
@@ -72,10 +92,7 @@ class module.exports extends events.EventEmitter
   _writeEvent: (event) =>
     #log "store.Memory: _writeEvent: writing!"
     @events.push event
-
-    # the memory store does NOT need to send 'flushed' events
-    #@emit 'flushed', @flushing.version++
-
+    @count()
     yes
 
   # Get the previous Event
@@ -89,3 +106,12 @@ class module.exports extends events.EventEmitter
   # Compute the duration
   length: () => 
     @_length
+
+  count: () =>
+    version = 0+@flushing.version
+    @flushing.version++
+    version
+
+  sync: =>
+    #log "MEMORY: SYNC"
+    @emit 'flushed', @count()

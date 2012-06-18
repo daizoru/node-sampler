@@ -32,17 +32,24 @@
 moment = require 'moment'
 
 # project modules
-{delay,contains,simpleFactory} = require './misc/toolbox'
-Record = require './record'
-Cursor = require './cursor'
+{delay,contains,simpleFactory} = require '../misc/toolbox'
+Record = require '../record'
+Cursor = require '../cursor'
 
 # SIMPLE API
 class exports.Recorder
-  constructor: (url=no) ->
+  constructor: (url="",options={}) ->
+    @config =
+      autosave: 500
+
+    for k,v of options
+      @config[k] = v
 
     # Simple API use simple callbacks
     @callbacks = []
     @sync = 0
+    @synced = no
+    @closed = no
 
     #log "SimpleRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
@@ -56,7 +63,8 @@ class exports.Recorder
       else
         1 # the event arrived to late - we just ignore it
 
-    @record.on 'flushed', (version) =>
+    @record.on 'synced', (version) =>
+      @synced = (version > 0)
       if version > @sync
         @sync = version
         for cb in @callbacks
@@ -65,22 +73,42 @@ class exports.Recorder
       else
         1 # the event arrived to late - we just ignore it
 
+    if @config.autosave >= 0
+      if @record.ready()
+        delay @config.autosave, => @autosave()
+      else
+        @record.on 'ready', =>
+          @autosave()
+
+  autosave: =>
+    #log "AUTOSAVE"
+    if @synced
+      # if we are closed AND synced -> stop loop
+      if @closed
+        @config.autosave = -1
+        return
+    else
+      @record.sync()
+    if @config.autosave >= 0
+      delay @config.autosave, =>
+        @autosave()
+
   # SimpleRecorder API
   write: (data, cb=no) => 
-    #log "SimpleRecorder#write(#{data})"
-   #log "Record: write()"
-    @callbacks.push cb if cb
-    @record.write moment(), data
+    @writeAt moment(), data, cb
 
   # SimpleRecorder API
   writeAt: (timestamp, data, cb=no) => 
-    #log "SimpleRecorder#writeAt(#{timestamp},#{data})"
-    #log "Record: write()"
     @callbacks.push cb if cb
-    @record.write timestamp, data
+    @synced = @record.write timestamp, data
+    @synced
+
+  close: =>
+    @closed = yes
+
   
 class exports.Player
-  constructor: (url, options) -> 
+  constructor: (url, options={}) -> 
     #log "simple.Player#constructor(#{url}, options)"
 
     @config =
@@ -116,7 +144,12 @@ class exports.Player
     @cursor.on   'end',           => @config.onEnd()
     @cursor.on   'error', (err)   => @config.onError err
 
-    @resume() if @config.autoplay
+    if @config.autoplay
+      if @record.ready()
+        delay 0, => @resume()
+      else
+        @record.on 'ready', =>
+          @resume()
 
   start:  => @resume()
   resume: => @cursor.resume()

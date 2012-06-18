@@ -117,8 +117,15 @@ recorder.write "hello"
 recorder.write foo: "hello", bar: "world"
 recorder.write new Buffer()
 
-# in the future, you will be able to add an event at a specific time
+# not yet implemented, but soon you will be able to add an event at a specific time
 # recorder.writeAt moment(1982,1,1), "cold wave"
+
+# also, don't forget to close the recorder when you don't use it anymore
+# the reason is that a recorder start some background processes
+# (eg. async synchronization of database) that need to be stopped manually
+# if there is not more data to record. 
+recorder.stop()
+
 
 ```
 
@@ -152,6 +159,8 @@ recorder = new StreamRecorder record
 myInputStream.pipe(recorder)
 
 # that's all folks!
+# you don't need to close explicitely the StreamRecorder (unlike SimpleRecorder)
+# since it can detect automatically 'close' events from input stream
 ```
 
 
@@ -192,8 +201,13 @@ Piping
 
 ### Playing with Twitter Stream
 
-  Here I am using some environment variables to define the Twitter tokens (à la Heroku),
-  so don't forget to change this to fit your own environment.
+  NOTE 1: you need to install ntwitter manually before running the example:
+
+   $ npm install -g ntwitter
+
+  I didn't include it as a dependency to keep dependencies light.
+
+  NOTE 2: you need to have some some environment variables containing your Twitter tokens
 
 ``` coffeescript
 
@@ -231,6 +245,7 @@ twit.stream 'statuses/sample', (stream) ->
   stream.on 'data', (data) -> 
     timeline.write moment(data.created_at), data.text
   delay duration*1000, ->
+    recorder.close()
     log "playing tweets back"
     new sampler.SimplePlayer timeline,
       speed: 2.0
@@ -245,6 +260,13 @@ twit.stream 'statuses/sample', (stream) ->
 
 
 ## Changelog
+
+### 0.0.5
+
+ * now we can load a json file! and it's tested!
+ * more bugfixes
+ * more tests
+ * addd a recorder.close() function
 
 ### 0.0.4
 

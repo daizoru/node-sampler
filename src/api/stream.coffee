@@ -32,13 +32,23 @@
 moment = require 'moment'
 
 # project modules
-{delay,contains,simpleFactory} = require './misc/toolbox'
-Record = require './record'
-Cursor = require './cursor'
+{delay,contains,simpleFactory} = require '../misc/toolbox'
+Record = require '../record'
+Cursor = require '../cursor'
 
 # STREAMING API
 class exports.Recorder extends Stream
-  constructor: (url="") ->
+  constructor: (url="",options={}) ->
+    @config =
+      autosave: 500
+    for k,v of options
+      @config[k] = v
+
+    @synced = no
+    @closed = no
+
+    @writable = yes
+
 
     #log "StreamRecorder#constructor(#{url})"
     @record = simpleFactory Record, url
@@ -48,32 +58,49 @@ class exports.Recorder extends Stream
       @emit 'error', err
       return
 
-    @record.on 'flushed', (version) =>
+    @record.on 'synced', (version) =>
       #log "StreamRecorder: disk flushed, emitting'drain'"
-      @emit 'drain'
+      @synced = (version > 0) # we are synced if 
+      #@emit 'drain' # not yet
       return
 
-    @writable = yes
+
+    if @config.autosave >= 0
+      if @record.ready()
+        delay @config.autosave, => @autosave()
+      else
+        @record.on 'ready', =>
+          @autosave()
+          
+
+  autosave: =>
+    #log "AUTOSAVE"
+    if @synced
+      # if we are closed AND synced -> stop loop
+      if @closed
+        @config.autosave = -1
+        return
+    else
+      @record.sync()
+    if @config.autosave >= 0
+      delay @config.autosave, =>
+        @autosave()
 
   end: (data) =>
     #log "StreamRecorder#end(#{inspect data})"
+    @closed = yes
     @emit 'close' # optional
     #@record.close()
 
   # SimpleRecorder API
   write: (data) => 
-    #log "StreamRecorder#write(#{inspect data})"
-    @record.write moment(), data
-    yes
+    @synced = @record.write moment(), data
 
-  # SimpleRecorder API
-  writeAt: (timestamp, data) => 
-    #log "StreamRecorder#writeAt(#{timestamp},#{inspect data})"
-    @record.write timestamp, data
+     # even iif we are not synced to disk, we let the input stream fill our buffer
     yes
   
 class exports.Player extends Stream
-  constructor: (url, options) -> 
+  constructor: (url, options={}) -> 
     #log "StreamPlayer#constructor(#{url})"
     @config =
       speed: 1.0
@@ -106,8 +133,12 @@ class exports.Player extends Stream
       #log "CURSOR SENT 'error': #{err}"
       @emit 'error', err
 
-    @resume() if @config.autoplay
-
+    if @config.autoplay
+      if @record.ready()
+        delay 0, => @resume()
+      else
+        @record.on 'ready', =>
+          @resume()
 
   resume: =>
     #log "StreamPlayer#resume(): checking.."

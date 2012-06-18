@@ -1,5 +1,5 @@
-stream = require './stream'
-simple = require './simple'
+stream = require './api/stream'
+simple = require './api/simple'
 Record = require './record'
 
 exports.Record         = Record

@@ -1,3 +1,4 @@
+test/tmp.*
 examples/test.json
 examples/test.yaml
 examples/test.yml
