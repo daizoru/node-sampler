@@ -1,7 +1,7 @@
 {
   "name"        : "sampler",
   "description" : "Record things, play them back",
-  "version"     : "0.0.3",
+  "version"     : "0.0.4",
   "repository"  : { "type": "git", "url": "git://github.com/daizoru/node-sampler.git" },
   "license"     : "BSD",
   "author"      : { "name" : "Julian Bilcke", "email" : "julian.bilcke@daizoru.com", "url" : "http://github.com/daizoru" },

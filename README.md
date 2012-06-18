@@ -49,19 +49,15 @@
 
     $ npm install sampler -g
 
-#### Run the tests
-
-    $ npm run-script test
-
 ### For developers
 
   To install node-sampler in a development setup:
 
     $ git clone http://github.com/daizoru/node-sampler.git
-    $ cd node-sampler
-    $ npm link
-    $ # optional:
-    $ # npm run-script test 
+
+  Run the tests (you need mocha. it seems I cannot put it in dev dependencies, or it does a cyclic loop):
+
+    $ npm run-script test 
 
   To build the coffee-script:
 
@@ -249,6 +245,10 @@ twit.stream 'statuses/sample', (stream) ->
 
 
 ## Changelog
+
+### 0.0.4
+
+ * Fixed broken YAML dependency
 
 ### 0.0.3
  
