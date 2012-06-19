@@ -66,9 +66,10 @@ class module.exports extends events.EventEmitter
       @emit 'error', "cannot resume: we are not enabled"
       return
 
-    #if @paused
-    #  log "CURSOR#RESUME() paused -> cannot resume"
-    @paused = no
+    # if we were paused, we forgive latency
+    if @paused
+      @latency = 0
+      @paused = no
 
     # du we already have a running cursor or not?
     @next = @store.first unless @next

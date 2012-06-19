@@ -114,4 +114,4 @@ class module.exports extends events.EventEmitter
 
   sync: =>
     #log "MEMORY: SYNC"
-    @emit 'flushed', @count()
+    @emit 'synced', @count()
