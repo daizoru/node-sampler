@@ -5,8 +5,8 @@
 ## Overview
 
  You can record events from virtually any source (streams, event emitters, files, lines, code, message queues.. maybe even audio!)
- store them in a database (for the moment, memory only, but more backends are coming)
- and play these events slower (or faster).
+ store them in a file (or just keep it in the memory for some time (support for DB stores is planned) 
+ and finally, playback these events slower (or faster).
 
  This can be very useful if you deal with machine learning algorithms that need to be trained
  on long time-series (eg. Twitter streams). You can also use it to simulate stuff like HTTP request etc..
@@ -19,19 +19,22 @@
 
 ### Features
 
-  * control the playback speed (slower or faster)
-  * accurate scheduler (latency if automatically corrected)
-  * simple API - with unit tests!
+  * store events in a text file (json, yaml)
+  * can load events and play them back!
+  * control over playback speed (slower or faster)
+  * accurate scheduler (latency is automatically corrected)
+  * a Simple API 
+  * a Stream API
   * basic Twitter example
+  * unit tests!
 
 ### TODO / Wishlist
   
-  * full support the Stream API (still incomplete/non functional)
-  * save/export samples (to databases, files..)
-  * load/import samples (from APIs, databases, CSVs..)
-  * insertion of event at arbitrary timesteps (eg. when working with incomplete time-series)
-  * reverse playback?
+  * support for Redis, MongoDB, xSQL.. databases
+  * support for insertion of events (not just appending)
+  * support for reverse playback (for fun)
   * more tests
+  * more examples
 
 ### License
 
