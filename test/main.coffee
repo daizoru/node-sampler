@@ -23,6 +23,8 @@ class Newsfeed extends Stream
       { ticker: -3234 }
       { weatherstation: {temp:"76", unit:"F"} }
       { counter: 42 }
+      'THE MESSAGE'
+      new Buffer 'aÂÅ∆'
       { irc: {channel:"#FOO",msg:"<bar> ho hai"} }
       { twitter: "just saw my dead neighbor walking in my street. It's weird. wait I'm gonna check it out" }
       { twitter: "ZOMBIE APOCALYPSE!!1!!" }
@@ -109,7 +111,7 @@ describe 'new Record(\'test/tmp.json\')', ->
         new SimplePlayer record, 
           onBegin: =>
             #log "stream started. timeout set to 30 + #{TIMEOUT + (length / 1.0)}"
-            @timeout (30 + TIMEOUT + (length / 1.0))
+            @timeout (90 + (length / 1.0))
           onEnd: => 
             e = moment() - t
             #log "play expected: 30 + #{TIMEOUT + (length / 1.0)}; elapsed: #{e}"
@@ -121,7 +123,7 @@ describe 'new Record(\'test/tmp.json\')', ->
         new SimplePlayer record, 
           onBegin: =>
             #log "stream started. timeout set to 30 + #{TIMEOUT + (length / 1.0)}"
-            @timeout (30 + TIMEOUT + (record.length() / 1.0))
+            @timeout (90 + (record.length() / 1.0))
           onEnd: => 
             e = moment() - t
             #log "play expected: 30 + #{TIMEOUT + (length / 1.0)}; elapsed: #{e}"
@@ -147,7 +149,7 @@ describe 'new Record()', ->
 
     it 'playback at normal speed', (done) ->
       new SimplePlayer record, 
-        onBegin:  =>  @timeout 70 + (length / 1.0)
+        onBegin:  =>  @timeout 90 + (length / 1.0)
         onEnd:    -> done()
 
     it 'playback at 2.0x speed', (done) ->
@@ -197,13 +199,13 @@ describe 'Stream API', ->
       done()
 
   it 'playback events at normal speed', (done) ->
-    @timeout 70 + (length / 1.0)
+    @timeout 90 + (length / 1.0)
     player = new StreamPlayer record
     player.on 'data', (event) -> throw "error, got a timestamp" if event.timestamp?
     player.on 'end', -> done()
 
   it 'playback timestamped events at normal speed', (done) ->
-    @timeout 70 + (length / 1.0)
+    @timeout 90 + (length / 1.0)
     player = new StreamPlayer record,
       withTimestamp: yes
     player.on 'data', (event) -> throw "error, no timestamp" unless event.timestamp?
