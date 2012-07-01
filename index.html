@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Node-sampler by daizoru</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Node-sampler</h1>
+        <h2>Record things, play them back</h2>
+        <a href="https://github.com/daizoru/node-sampler" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>node-sampler</h1>
+
+<p>A library which record things and play them back</p>
+
+<h2>Overview</h2>
+
+<p>You can record events from virtually any source (streams, event emitters, files, lines, code, message queues.. maybe even audio!)
+ store them in a file (or just keep it in the memory for some time (support for DB stores is planned) 
+ and finally, playback these events slower (or faster).</p>
+
+<p>This can be very useful if you deal with machine learning algorithms that need to be trained
+ on long time-series (eg. Twitter streams). You can also use it to simulate stuff like HTTP request etc..</p>
+
+<h3>Current status</h3>
+
+<p>This library is still in development so expect heavy refactoring and sparse documentation until I have more time to settle everything.</p>
+
+<p>However it is somehow functional, for basic use or/and fun. check the twitter example :)</p>
+
+<h3>Features</h3>
+
+<ul>
+<li>store events in a text file (json, yaml)</li>
+<li>can load events and play them back!</li>
+<li>control over playback speed (slower or faster)</li>
+<li>accurate scheduler (latency is automatically corrected)</li>
+<li>a Simple API </li>
+<li>a Stream API</li>
+<li>basic Twitter example</li>
+<li>unit tests!</li>
+</ul><h3>TODO / Wishlist</h3>
+
+<ul>
+<li>support for Redis, MongoDB, xSQL.. databases</li>
+<li>support for insertion of events (not just appending)</li>
+<li>support for reverse playback (for fun)</li>
+<li>more tests</li>
+<li>more examples</li>
+</ul><h3>License</h3>
+
+<p>BSD</p>
+
+<h2>Installation</h2>
+
+<h3>For users</h3>
+
+<h4>Install it as a dependency for your project</h4>
+
+<pre><code>$ npm install sampler
+</code></pre>
+
+<h4>Install it globally in your system</h4>
+
+<pre><code>$ npm install sampler -g
+</code></pre>
+
+<h3>For developers</h3>
+
+<p>To install node-sampler in a development setup:</p>
+
+<pre><code>$ git clone http://github.com/daizoru/node-sampler.git
+</code></pre>
+
+<p>Run the tests (you need mocha. it seems I cannot put it in dev dependencies, or it does a cyclic loop):</p>
+
+<pre><code>$ npm run-script test 
+</code></pre>
+
+<p>To build the coffee-script:</p>
+
+<pre><code>$ npm run-script build
+</code></pre>
+
+<h2>Documentation</h2>
+
+<p>Sampler has two differents APIs: one for classic, quick &amp; dirty code (Simple API),
+  the second for cleaner, async streamlined code (Stream API)</p>
+
+<h3>Simple API</h3>
+
+<p>Record formats</p>
+
+<div class="highlight">
+<pre>
+<span class="p">{</span><span class="nx">Record</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'sampler'</span>
+
+<span class="c1"># data will be stored in memory</span>
+<span class="c1">#record = new Record()</span>
+
+<span class="c1"># stored as YAML file </span>
+<span class="c1"># (not very good: issues with encoding of international tweets, for instance)</span>
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span> <span class="s">"file://examples/test.yml"</span>
+
+
+<span class="c1"># stored as JSON file </span>
+<span class="c1"># not bad, it's compact (1 line) however it might not be very good for large files</span>
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span> <span class="s">"file://examples/test.json"</span>
+
+<span class="c1"># stored as SAMPLE file </span>
+<span class="c1"># compressed json, using Snappy</span>
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span> <span class="s">"file://examples/test.smp"</span>
+
+</pre>
+</div>
+
+
+<p>Recording</p>
+
+<div class="highlight">
+<pre>
+<span class="p">{</span><span class="nx">Record</span><span class="p">,</span> <span class="nx">SimpleRecorder</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'sampler'</span>
+
+<span class="c1"># create a brand new record</span>
+<span class="c1"># if there is no argument, data is stored in memory</span>
+<span class="c1">#record = new Record()</span>
+
+<span class="c1"># file:// protocol need a path with a valid extension to guess the format (yaml,yml,json)</span>
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span><span class="p">(</span><span class="s">"file://examples/test.yaml"</span><span class="p">)</span>
+
+<span class="c1"># now, you can start playing with your record. </span>
+<span class="c1"># let's record things in the record! for this, you need a Recorder</span>
+<span class="nv">recorder = </span><span class="k">new</span> <span class="nx">SimpleRecorder</span><span class="p">(</span><span class="nx">record</span><span class="p">)</span>
+
+<span class="c1"># then just write things inside</span>
+<span class="nx">recorder</span><span class="p">.</span><span class="nx">write</span> <span class="s">"hello"</span>
+<span class="nx">recorder</span><span class="p">.</span><span class="nx">write</span> <span class="nv">foo: </span><span class="s">"hello"</span><span class="p">,</span> <span class="nv">bar: </span><span class="s">"world"</span>
+<span class="nx">recorder</span><span class="p">.</span><span class="nx">write</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">()</span>
+
+<span class="c1"># not yet implemented, but soon you will be able to add an event at a specific time</span>
+<span class="c1"># recorder.writeAt moment(1982,1,1), "cold wave"</span>
+
+<span class="c1"># also, don't forget to close the recorder when you don't use it anymore</span>
+<span class="c1"># the reason is that a recorder start some background processes</span>
+<span class="c1"># (eg. async synchronization of database) that need to be stopped manually</span>
+<span class="c1"># if there is not more data to record. </span>
+<span class="nx">recorder</span><span class="p">.</span><span class="nx">stop</span><span class="p">()</span>
+
+
+</pre>
+</div>
+
+
+<p>Playback</p>
+
+<div class="highlight">
+<pre>
+<span class="p">{</span><span class="nx">Record</span><span class="p">,</span> <span class="nx">SimplePlayer</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'sampler'</span>
+
+<span class="c1"># load an existing record - for the moment.. nothing is supported :) only in-memory</span>
+<span class="c1"># but in the future, you will be able to load MongoDB, SQL, Redis records etc..</span>
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span><span class="p">(</span><span class="s">"redis://foobar"</span><span class="p">)</span>
+
+<span class="c1"># create a basic player</span>
+<span class="nv">player = </span><span class="k">new</span> <span class="nx">SimplePlayer</span><span class="p">(</span><span class="nx">record</span><span class="p">)</span>
+
+</pre>
+</div>
+
+
+<h3>Stream API</h3>
+
+<p>Recording</p>
+
+<div class="highlight">
+<pre>
+<span class="p">{</span><span class="nx">Record</span><span class="p">,</span> <span class="nx">StreamRecorder</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'sampler'</span>
+
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span> <span class="s">"file://examples/twitter.json"</span>
+
+<span class="nv">recorder = </span><span class="k">new</span> <span class="nx">StreamRecorder</span> <span class="nx">record</span>
+
+<span class="nx">myInputStream</span><span class="p">.</span><span class="nx">pipe</span><span class="p">(</span><span class="nx">recorder</span><span class="p">)</span>
+
+<span class="c1"># that's all folks!</span>
+<span class="c1"># you don't need to close explicitely the StreamRecorder (unlike SimpleRecorder)</span>
+<span class="c1"># since it can detect automatically 'close' events from input stream</span>
+</pre>
+</div>
+
+
+<p>Playing</p>
+
+<div class="highlight">
+<pre>
+<span class="p">{</span><span class="nx">Record</span><span class="p">,</span> <span class="nx">StreamPlayer</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'sampler'</span>
+
+<span class="nv">record = </span><span class="k">new</span> <span class="nx">Record</span> <span class="s">"file://examples/twitter.json"</span>
+
+<span class="nv">player = </span><span class="k">new</span> <span class="nx">StreamPlayer</span> <span class="nx">record</span>
+
+<span class="c1"># by default there is no timestamps, however you can enable them using:</span>
+<span class="nv">player = </span><span class="k">new</span> <span class="nx">StreamPlayer</span> <span class="nx">record</span><span class="p">,</span>
+  <span class="nv">withTimestamp: </span><span class="kc">yes</span>
+<span class="c1"># this will emit messages in the form {timestamp, data}</span>
+
+
+<span class="c1"># to listen to events, just do:</span>
+<span class="nx">player</span><span class="p">.</span><span class="kc">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nf">(data) -&gt;</span>
+  <span class="c1"># do something with the data</span>
+
+<span class="nx">player</span><span class="p">.</span><span class="kc">on</span> <span class="s">'end'</span><span class="p">,</span> <span class="o">-&gt;</span>
+  <span class="c1"># finished!</span>
+
+</pre>
+</div>
+
+
+<p>Piping</p>
+
+<div class="highlight">
+<pre>
+<span class="c1"># to be continued</span>
+
+</pre>
+</div>
+
+
+<h2>Examples</h2>
+
+<h3>Playing with Twitter Stream</h3>
+
+<p>NOTE 1: you need to install ntwitter manually before running the example:</p>
+
+<p>$ npm install -g ntwitter</p>
+
+<p>I didn't include it as a dependency to keep dependencies light.</p>
+
+<p>NOTE 2: you need to have some some environment variables containing your Twitter tokens</p>
+
+<div class="highlight">
+<pre>
+<span class="c1"># standard node library</span>
+<span class="p">{</span><span class="nx">log</span><span class="p">,</span><span class="nx">inspect</span><span class="p">}</span> <span class="o">=</span> <span class="nx">require</span> <span class="s">'util'</span>
+
+<span class="c1"># third-parties libraries</span>
+<span class="nv">Twitter = </span>      <span class="nx">require</span> <span class="s">'ntwitter'</span>
+<span class="nv">moment = </span>       <span class="nx">require</span> <span class="s">'moment'</span>
+
+<span class="c1"># sampler modules</span>
+<span class="nv">sampler = </span>      <span class="nx">require</span> <span class="s">'../lib/sampler'</span>
+
+<span class="c1"># shortcuts</span>
+<span class="nv">delay = </span><span class="nf">(t, f) -&gt;</span> <span class="nx">setTimeout</span> <span class="nx">f</span><span class="p">,</span> <span class="nx">t</span>
+
+<span class="c1"># PARAMETERS</span>
+<span class="nv">duration = </span><span class="mi">10</span>
+<span class="nv">timeline = </span><span class="k">new</span> <span class="nx">sampler</span><span class="p">.</span><span class="nx">Record</span> <span class="s">"file://twitter.json"</span>
+<span class="nv">twit = </span><span class="k">new</span> <span class="nx">Twitter</span>
+  <span class="nv">consumer_key: </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">TWITTER_CONSUMER_KEY</span>
+  <span class="nv">consumer_secret: </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">TWITTER_CONSUMER_SECRET</span>
+  <span class="nv">access_token_key: </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">TWITTER_TOKEN_KEY</span>
+  <span class="nv">access_token_secret: </span><span class="nx">process</span><span class="p">.</span><span class="nx">env</span><span class="p">.</span><span class="nx">TWITTER_TOKEN_SECRET</span>
+
+<span class="c1"># let's open a stream on random tweets</span>
+<span class="nx">twit</span><span class="p">.</span><span class="nx">stream</span> <span class="s">'statuses/sample'</span><span class="p">,</span> <span class="nf">(stream) -&gt;</span>
+  <span class="nv">recorder = </span><span class="k">new</span> <span class="nx">sampler</span><span class="p">.</span><span class="nx">SimpleRecorder</span> <span class="nx">timeline</span>
+  <span class="nx">stream</span><span class="p">.</span><span class="kc">on</span> <span class="s">'error'</span><span class="p">,</span> <span class="nf">(err) -&gt;</span>
+    <span class="nx">log</span> <span class="s">"twitter error: </span><span class="si">#{</span><span class="nx">inspect</span> <span class="nx">err</span><span class="si">}</span><span class="s">"</span>
+    <span class="c1"># there is a bug in ntwitter. sometimes tweets come from here!</span>
+    <span class="k">if</span> <span class="nx">err</span><span class="p">.</span><span class="nx">text</span><span class="o">?</span>
+      <span class="nx">recorder</span><span class="p">.</span><span class="nx">writeAt</span> <span class="nx">moment</span><span class="p">(</span><span class="nx">err</span><span class="p">.</span><span class="nx">created_at</span><span class="p">),</span> <span class="nx">err</span><span class="p">.</span><span class="nx">text</span>
+
+  <span class="nx">stream</span><span class="p">.</span><span class="kc">on</span> <span class="s">'data'</span><span class="p">,</span> <span class="nf">(data) -&gt;</span> 
+    <span class="nx">recorder</span><span class="p">.</span><span class="nx">writeAt</span> <span class="nx">moment</span><span class="p">(</span><span class="nx">data</span><span class="p">.</span><span class="nx">created_at</span><span class="p">),</span> <span class="nx">data</span><span class="p">.</span><span class="nx">text</span>
+  <span class="nx">delay</span> <span class="nx">duration</span><span class="o">*</span><span class="mi">1000</span><span class="p">,</span> <span class="o">-&gt;</span>
+    <span class="nx">recorder</span><span class="p">.</span><span class="nx">close</span><span class="p">()</span>
+    <span class="nx">log</span> <span class="s">"playing tweets back"</span>
+    <span class="k">new</span> <span class="nx">sampler</span><span class="p">.</span><span class="nx">SimplePlayer</span> <span class="nx">timeline</span><span class="p">,</span>
+      <span class="nv">speed: </span><span class="mf">2.0</span>
+      <span class="nv">withTimestamp: </span><span class="kc">yes</span>
+      <span class="nv">onData: </span><span class="nf">(event) -&gt;</span>
+        <span class="nx">log</span> <span class="s">"</span><span class="si">#{</span><span class="nx">event</span><span class="p">.</span><span class="nx">timestamp</span><span class="si">}</span><span class="s">: </span><span class="si">#{</span><span class="nx">inspect</span> <span class="nx">event</span><span class="p">.</span><span class="nx">data</span><span class="si">}</span><span class="s">"</span>
+      <span class="nv">onEnd: </span><span class="o">-&gt;</span>
+        <span class="nx">process</span><span class="p">.</span><span class="nx">exit</span><span class="p">()</span>
+  <span class="nx">log</span> <span class="s">"listening for </span><span class="si">#{</span><span class="nx">duration</span><span class="si">}</span><span class="s"> seconds"</span>
+
+</pre>
+</div>
+
+
+<h2>Changelog</h2>
+
+<h3>0.0.5</h3>
+
+<ul>
+<li>now we can load a json file! and it's tested!</li>
+<li>more bugfixes</li>
+<li>more tests</li>
+<li>addd a recorder.close() function</li>
+</ul><h3>0.0.4</h3>
+
+<ul>
+<li>Fixed broken YAML dependency</li>
+</ul><h3>0.0.3</h3>
+
+<ul>
+<li>receiving timestamps during playback is now optional (disabled by default)</li>
+<li>various bugfixes</li>
+<li>tests are passing</li>
+<li>basic support for file storage in YAML, JSON and JSON + Snappy</li>
+<li>experimental support of Node's Stream API</li>
+</ul><h3>0.0.2</h3>
+
+<ul>
+<li>REFACTORED EVERYTHING WITH FIRE</li>
+</ul><h3>0.0.1</h3>
+
+<p>I Added a callback when the playback reach the end:</p>
+
+<div class="highlight">
+<pre>
+  <span class="nx">sampler</span><span class="p">.</span><span class="nx">on</span><span class="p">(</span><span class="s2">"end"</span><span class="p">,</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">"playback terminated"</span><span class="p">)</span>
+  <span class="p">})</span>
+
+</pre>
+</div>
+
+
+<h3>0.0.0</h3>
+
+<p>First version</p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/daizoru/node-sampler/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/daizoru/node-sampler/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/daizoru/node-sampler"></a> is maintained by <a href="https://github.com/daizoru">daizoru</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
