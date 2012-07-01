@@ -31,9 +31,9 @@ twit.stream 'statuses/sample', (stream) ->
       process.exit()
       
     if err.text?
-      timeline.write moment(err.created_at), err.text
+      recorder.writeAt moment(err.created_at), err.text
   stream.on 'data', (data) -> 
-    timeline.write moment(data.created_at), data.text
+    recorder.writeAt moment(data.created_at), data.text
   delay duration*1000, ->
     log "recording terminated, will soon exit.."
     stream.destroy() # clean exit?
